@@ -411,13 +411,23 @@ const LABEL="לקוח / משפחת דגם", TOTAL='סה"כ';
 const txt = v => (v==null?"":String(v)).trim();
 const n = v => { const x=Number(v); return isFinite(x)?x:0; };
 
-function aggregateSales(rows){
-  // detect block headers: a row whose next row's col C is the column-header label
+function aggregateSales(rows, merges){
+  merges = merges || [];
+  // a salesperson header is identified by ANY of: a merged C:E cell, the next row being the
+  // column-header label, or the name duplicated across C & I with a duplicated label row below.
+  const isNameMerge = i => merges.some(m=>m.s && m.s.r===i && m.s.c===2 && m.e.c>2);
   const heads=[];
   for(let i=0;i<rows.length;i++){
     const c=txt(rows[i]?.[2]);
-    const nx=txt(rows[i+1]?.[2]);
-    if(c && c!==LABEL && c!==TOTAL && nx===LABEL) heads.push({name:c, start:i});
+    if(!c || c===LABEL || c===TOTAL) continue;
+    if(/^-?\d+(\.\d+)?$/.test(c)) continue;            // skip pure numbers
+    const nx  = txt(rows[i+1]?.[2]);
+    const nxI = txt(rows[i+1]?.[8]);
+    const ci  = txt(rows[i]?.[8]);
+    const sig = isNameMerge(i)
+             || nx===LABEL
+             || (ci===c && nx && nxI && nx===nxI && nx!==c);
+    if(sig) heads.push({name:c, start:i});
   }
   const reps=[];
   heads.forEach((h,k)=>{
@@ -461,8 +471,11 @@ async function parseWorkbook(arrayBuffer){
   const dataSheet = wb.Sheets["חשבונית-פתוח-בתהליך"];
   if(!dataSheet) throw new Error("לא נמצא גיליון הנתונים");
   const rows = XLSX.utils.sheet_to_json(dataSheet, {header:1, raw:true, defval:null});
-  const reps = aggregateSales(rows);
-  if(!reps.length) throw new Error("לא זוהו בלוקים של נציגים");
+  const reps = aggregateSales(rows, dataSheet["!merges"]||[]);
+  if(!reps.length){
+    const sample = rows.map(r=>txt(r?.[2])).filter(Boolean).slice(0,10).join(" · ");
+    throw new Error("לא זוהו בלוקים של נציגים. עמודה C מכילה: " + (sample || "(ריק)"));
+  }
   const norm = s => s.replace(/\s+/g,"");
   // targets: prefer the 'לוח בקרה' sheet (name + target input), then fall back to 'יעדים'
   const dash = wb.Sheets["לוח בקרה"];
