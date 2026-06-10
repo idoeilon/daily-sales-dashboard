@@ -57,6 +57,8 @@
   .notice{display:none;align-items:flex-start;gap:10px;border:1px solid var(--line2);
     background:linear-gradient(180deg,rgba(245,165,36,.07),transparent);border-radius:12px;padding:11px 14px;margin-bottom:16px;font-size:13px;color:var(--muted)}
   .notice.show{display:flex}
+  .notice.ok{background:linear-gradient(180deg,rgba(45,212,191,.10),transparent);border-color:var(--teal-dim)}
+  .notice.ok b{color:var(--teal)}
   .notice b{color:var(--text)}
 
   /* ---- hero pace ---- */
@@ -448,7 +450,7 @@ function readTargetsAndQuality(rows, reps){
   const sales=collect(hdr[0]), qual=collect(hdr[1]);
   const norm=s=>s.replace(/\s+/g,"");
   const find=(map,name)=>{ for(const k in map){ if(norm(k)===norm(name)) return map[k]; } return null; };
-  reps.forEach(r=>{ const s=find(sales,r.name); if(s) r.target=s.target; });
+  reps.forEach(r=>{ if(!r.target){ const s=find(sales,r.name); if(s) r.target=s.target; } });
   const quality = reps.map(r=>{ const q=find(qual,r.name); return {name:r.name, target:q?q.target:4, done:q?q.actual:0}; });
   return quality;
 }
@@ -461,6 +463,17 @@ async function parseWorkbook(arrayBuffer){
   const rows = XLSX.utils.sheet_to_json(dataSheet, {header:1, raw:true, defval:null});
   const reps = aggregateSales(rows);
   if(!reps.length) throw new Error("לא זוהו בלוקים של נציגים");
+  const norm = s => s.replace(/\s+/g,"");
+  // targets: prefer the 'לוח בקרה' sheet (name + target input), then fall back to 'יעדים'
+  const dash = wb.Sheets["לוח בקרה"];
+  if(dash){
+    const drows = XLSX.utils.sheet_to_json(dash,{header:1,raw:true,defval:null});
+    const skip = new Set(["שם מוכר", TOTAL, ""]);
+    const tmap = {};
+    drows.forEach(row=>{ const nm=txt(row?.[1]); const tv=Number(row?.[2]);
+      if(nm && !skip.has(nm) && row?.[2]!=null && row?.[2]!=="" && isFinite(tv)) tmap[nm]=tv; });
+    reps.forEach(r=>{ for(const k in tmap){ if(norm(k)===norm(r.name)){ r.target=tmap[k]; break; } } });
+  }
   let quality = SNAPSHOT.quality, focus = SNAPSHOT.focusModels, incentive = SNAPSHOT.incentive;
   const tgt = wb.Sheets["יעדים"];
   if(tgt){
@@ -495,7 +508,7 @@ function ensureXLSX(){
 }
 
 function showNotice(html, kind){
-  const nEl=el("notice"); nEl.innerHTML=html; nEl.className="notice show";
+  const nEl=el("notice"); nEl.innerHTML=html; nEl.className="notice show"+(kind==="ok"?" ok":"");
 }
 function setLive(on){
   const p=el("srcPill"), l=el("srcLabel");
@@ -506,7 +519,8 @@ async function loadFromBuffer(buf){
   try{
     const data = await parseWorkbook(buf);
     render(data); setLive(true);
-    el("notice").className="notice"; // hide
+    const c = compute(data);
+    showNotice(`<div><b>הנתונים עודכנו מהקובץ.</b> ${data.reps.length} נציגים · יעד כולל ${nf.format(c.t.target)} · חשבוניות ${nf.format(c.t.invoices)} · ${pf(c.ach)} ביצוע.</div>`, "ok");
   }catch(err){
     showNotice(`<div><b>ממשיך עם הנתונים המוטמעים.</b> לא הצלחתי לקרוא את הקובץ: ${err.message}.</div>`);
   }
