@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>לוח מכירות ואיכות — יוני 2026</title>
+<style>
+  :root{
+    --bg:#0b0e14; --bg2:#0e1320; --surface:#141a28; --surface2:#1a2233;
+    --line:#262f43; --line2:#313c54;
+    --text:#eaf0fb; --muted:#8b97ad; --faint:#5d6880;
+    --teal:#2dd4bf; --teal-dim:#155e57;
+    --amber:#f5a524; --amber-dim:#5e4413;
+    --violet:#8b7cf6; --violet-dim:#3a3270;
+    --gold:#d8b45a; --rose:#f87171;
+    --r:16px; --r-sm:11px;
+    --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 18px 40px -24px rgba(0,0,0,.9);
+    --font:"Heebo","Assistant","Segoe UI",system-ui,-apple-system,"Arial Hebrew",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 500px at 90% -8%, rgba(45,212,191,.10), transparent 60%),
+      radial-gradient(800px 480px at -5% 0%, rgba(139,124,246,.10), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--font); line-height:1.45;
+    -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums;
+    letter-spacing:.1px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+  /* ---- top bar ---- */
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:46px;height:46px;border-radius:13px;flex:none;
+    background:linear-gradient(150deg,#22e0c6,#6d8bff 70%);
+    display:grid;place-items:center;box-shadow:0 10px 26px -10px rgba(45,212,191,.55)}
+  .logo svg{width:25px;height:25px}
+  .brand h1{font-size:20px;font-weight:800;margin:0;letter-spacing:.2px}
+  .brand p{margin:2px 0 0;color:var(--muted);font-size:12.5px;font-weight:500}
+  .controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .pill{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 13px;border-radius:999px;
+    font-size:12.5px;font-weight:600;border:1px solid var(--line2);background:var(--surface);color:var(--muted)}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 3px rgba(45,212,191,.18)}
+  .pill.embedded .dot{background:var(--amber);box-shadow:0 0 0 3px rgba(245,165,36,.16)}
+  .btn{height:34px;padding:0 14px;border-radius:10px;border:1px solid var(--line2);
+    background:var(--surface);color:var(--text);font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:border-color .15s,background .15s}
+  .btn:hover{border-color:var(--teal);background:var(--surface2)}
+  .btn svg{width:15px;height:15px}
+  .btn-primary{background:linear-gradient(150deg,#1ec9b3,#3f7bf0);border-color:transparent;color:#04121a}
+  .btn-primary:hover{filter:brightness(1.06);background:linear-gradient(150deg,#1ec9b3,#3f7bf0)}
+
+  /* ---- notice ---- */
+  .notice{display:none;align-items:flex-start;gap:10px;border:1px solid var(--line2);
+    background:linear-gradient(180deg,rgba(245,165,36,.07),transparent);border-radius:12px;padding:11px 14px;margin-bottom:16px;font-size:13px;color:var(--muted)}
+  .notice.show{display:flex}
+  .notice b{color:var(--text)}
+
+  /* ---- hero pace ---- */
+  .hero{background:linear-gradient(160deg,var(--surface2),var(--surface));
+    border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow);margin-bottom:18px}
+  .hero-head{display:flex;justify-content:space-between;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+  .hero-head .ey{color:var(--muted);font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase}
+  .verdict{font-size:13px;font-weight:700;padding:4px 11px;border-radius:999px}
+  .verdict.behind{color:var(--amber);background:var(--amber-dim)}
+  .verdict.ahead{color:var(--teal);background:var(--teal-dim)}
+  .hero-big{display:flex;align-items:flex-end;gap:14px;margin:4px 0 16px}
+  .hero-big .pct{font-size:54px;font-weight:800;line-height:.9;letter-spacing:-1px}
+  .hero-big .of{color:var(--muted);font-size:14px;font-weight:600;padding-bottom:7px}
+  .track{position:relative;height:30px;border-radius:9px;background:var(--bg2);border:1px solid var(--line);overflow:hidden}
+  .track .fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:9px;
+    background:linear-gradient(90deg,#1aa896,#2dd4bf);transition:width 1.1s cubic-bezier(.2,.7,.2,1)}
+  .track .fill.behind{background:linear-gradient(90deg,#c2811a,#f5a524)}
+  .timeline{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--text);opacity:.85}
+  .timeline::after{content:"";position:absolute;top:-5px;right:-4px;width:10px;height:10px;border-radius:50%;background:var(--text)}
+  .track-legend{display:flex;justify-content:space-between;margin-top:8px;font-size:11.5px;color:var(--muted)}
+  .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+  .hs{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+  .hs .v{font-size:21px;font-weight:800}
+  .hs .l{color:var(--muted);font-size:11.5px;font-weight:600;margin-top:2px}
+
+  /* ---- kpi strip ---- */
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 15px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent,var(--teal))}
+  .kpi .v{font-size:27px;font-weight:800;line-height:1}
+  .kpi .l{color:var(--muted);font-size:12px;font-weight:600;margin-top:6px}
+  .kpi .s{color:var(--faint);font-size:11px;margin-top:3px}
+
+  /* ---- grid sections ---- */
+  .grid2{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-bottom:18px}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 19px;box-shadow:var(--shadow)}
+  .card h2{font-size:15px;font-weight:800;margin:0 0 16px;display:flex;align-items:center;gap:9px}
+  .card h2 .tag{margin-inline-start:auto;font-size:11px;font-weight:600;color:var(--muted)}
+  .h2dot{width:9px;height:9px;border-radius:3px;background:var(--teal)}
+
+  /* reps bars */
+  .repbar{margin-bottom:15px}
+  .repbar:last-child{margin-bottom:0}
+  .repbar .row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:13px}
+  .repbar .name{font-weight:700}
+  .repbar .vals{color:var(--muted);font-size:12px}
+  .repbar .vals b{color:var(--text);font-weight:700}
+  .bartrack{height:13px;border-radius:7px;background:var(--bg2);border:1px solid var(--line);position:relative;overflow:hidden}
+  .barfill{position:absolute;inset:0 auto 0 0;width:0;border-radius:7px;background:linear-gradient(90deg,#2563c9,#5b8def);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .barpipe{position:absolute;inset:0 auto 0 0;width:0;border-radius:7px;background:repeating-linear-gradient(135deg,rgba(139,124,246,.5),rgba(139,124,246,.5) 6px,rgba(139,124,246,.28) 6px,rgba(139,124,246,.28) 12px);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+  .legend{display:flex;gap:16px;margin-top:4px;font-size:11.5px;color:var(--muted);flex-wrap:wrap}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-inline-end:6px;vertical-align:-1px}
+
+  /* donut */
+  .donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
+  .donut{position:relative;width:170px;height:170px;flex:none}
+  .donut .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .donut .center .v{font-size:30px;font-weight:800;line-height:1}
+  .donut .center .l{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+  .dlegend{display:flex;flex-direction:column;gap:9px;font-size:13px}
+  .dlegend .it{display:flex;align-items:center;gap:9px}
+  .dlegend .it i{width:11px;height:11px;border-radius:3px;flex:none}
+  .dlegend .it .n{color:var(--muted);font-weight:600}
+  .dlegend .it .x{margin-inline-start:auto;font-weight:800;padding-inline-start:20px}
+
+  /* quality */
+  .qgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .qcard{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+  .qcard .qn{font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center}
+  .qcard .qn .frac{font-weight:800}
+  .dots{display:flex;gap:7px;margin-top:12px}
+  .dots .d{flex:1;height:9px;border-radius:5px;background:var(--surface2);border:1px solid var(--line2)}
+  .dots .d.on{background:linear-gradient(90deg,#22e0c6,#6d8bff);border-color:transparent}
+  .qmeta{color:var(--muted);font-size:11.5px;margin-top:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .chip{font-size:12.5px;font-weight:600;color:var(--text);background:var(--bg2);
+    border:1px solid var(--line2);border-radius:999px;padding:6px 13px}
+  .chip::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
+    background:var(--gold);margin-inline-end:8px;vertical-align:1px}
+
+  /* incentive */
+  .inc{background:linear-gradient(160deg,rgba(216,180,90,.10),transparent),var(--surface);
+    border:1px solid rgba(216,180,90,.3)}
+  .inc h2 .h2dot{background:var(--gold)}
+  .incrow{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}
+  .incrow:last-of-type{border-bottom:0}
+  .incrow .nm{font-weight:700;font-size:13.5px}
+  .incrow .det{color:var(--muted);font-size:12px}
+  .incrow .pc{font-weight:800;font-size:16px}
+  .incnote{margin-top:12px;font-size:12.5px;color:var(--gold);font-weight:600}
+
+  .foot{margin-top:26px;color:var(--faint);font-size:12px;text-align:center;line-height:1.7}
+  .foot code{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--muted)}
+
+  @media (max-width:860px){
+    .grid2{grid-template-columns:1fr}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    .hero-stats{grid-template-columns:repeat(2,1fr)}
+    .hero-big .pct{font-size:44px}
+  }
+  @media (max-width:520px){ .qgrid{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+  input[type=file]{display:none}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#06151a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 5-7 4 5"/><path d="M3 21h18"/></svg>
+      </div>
+      <div>
+        <h1>לוח מכירות ואיכות</h1>
+        <p id="subtitle">ניהול מכירות חודשי — יוני 2026</p>
+      </div>
+    </div>
+    <div class="controls">
+      <span class="pill embedded" id="srcPill"><span class="dot"></span><span id="srcLabel">נתונים מוטמעים</span></span>
+      <button class="btn" id="refreshBtn" title="חשב מחדש"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>רענן</button>
+      <button class="btn btn-primary" id="loadBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><path d="M5 21h14"/></svg>טען קובץ אקסל</button>
+      <input type="file" id="fileInput" accept=".xlsx,.xlsm">
+    </div>
+  </div>
+
+  <div class="notice" id="notice"></div>
+
+  <!-- HERO: pace -->
+  <section class="hero">
+    <div class="hero-head">
+      <span class="ey">קצב החודש · מול יעד חשבוניות</span>
+      <span class="verdict" id="verdict">—</span>
+    </div>
+    <div class="hero-big">
+      <span class="pct num" id="achPct">0%</span>
+      <span class="of"><span class="num" id="achAbs">0</span> מתוך יעד <span class="num" id="achTgt">0</span> חשבוניות</span>
+    </div>
+    <div class="track" id="track">
+      <div class="fill" id="paceFill"></div>
+      <div class="timeline" id="timeMark" style="right:0"></div>
+    </div>
+    <div class="track-legend">
+      <span>0</span>
+      <span id="timeNote">— מהחודש חלף</span>
+      <span class="num" id="trackEnd">0</span>
+    </div>
+    <div class="hero-stats">
+      <div class="hs"><div class="v num" id="hsDays">0</div><div class="l">ימי עבודה שנותרו</div></div>
+      <div class="hs"><div class="v num" id="hsRate">0</div><div class="l">חשבוניות נדרשות ליום</div></div>
+      <div class="hs"><div class="v num" id="hsLeft">0</div><div class="l">יתרה ליעד</div></div>
+      <div class="hs"><div class="v num" id="hsPot">0%</div><div class="l">פוטנציאל (כולל בתהליך)</div></div>
+    </div>
+  </section>
+
+  <!-- KPI strip -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- reps + donut -->
+  <div class="grid2">
+    <section class="card">
+      <h2><span class="h2dot"></span>יעד מול ביצוע לפי נציג<span class="tag">חשבוניות · צבר בתהליך</span></h2>
+      <div id="reps"></div>
+      <div class="legend">
+        <span><i style="background:linear-gradient(90deg,#2563c9,#5b8def)"></i>חשבוניות (ביצוע)</span>
+        <span><i style="background:repeating-linear-gradient(135deg,#8b7cf6,#8b7cf6 5px,#5d54a8 5px,#5d54a8 10px)"></i>צבר (בתהליך + תיק פתוח)</span>
+        <span><i style="background:var(--bg2);border:1px solid var(--line2)"></i>יעד</span>
+      </div>
+    </section>
+    <section class="card">
+      <h2><span class="h2dot" style="background:var(--violet)"></span>התפלגות סטטוס</h2>
+      <div class="donut-wrap">
+        <div class="donut"><svg viewBox="0 0 42 42" id="donut" style="transform:rotate(-90deg)"></svg>
+          <div class="center"><div class="v num" id="dPipe">0</div><div class="l">סה״כ עסקאות</div></div>
+        </div>
+        <div class="dlegend" id="dlegend"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- quality -->
+  <section class="card" style="margin-bottom:18px">
+    <h2><span class="h2dot"></span>משימות איכות — מיקוד יוני<span class="tag" id="qtag">יעד 4 משימות לנציג</span></h2>
+    <div class="qgrid" id="quality"></div>
+    <div style="margin-top:18px">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--muted)">דגמים במיקוד</div>
+      <div class="chips" id="focus"></div>
+    </div>
+  </section>
+
+  <!-- incentive -->
+  <section class="card inc">
+    <h2><span class="h2dot"></span>אינסנטיב יוני<span class="tag">יעד "שמיים"</span></h2>
+    <div id="incentive"></div>
+    <div class="incnote" id="incnote"></div>
+  </section>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+/* ===== embedded snapshot (current data from the workbook) ===== */
+const SNAPSHOT = {
+  month: "יוני 2026",
+  workDaysInMonth: 22,
+  workDaysLeft: 15,
+  reps: [
+    { name:"אבי פטקייב", target:20, invoices:6, inProcess:15, open:7, deliveries:10 },
+    { name:"אור בנג'ו",  target:15, invoices:2, inProcess:5,  open:3, deliveries:6  }
+  ],
+  quality: [
+    { name:"אבי פטקייב", target:4, done:0 },
+    { name:"אור בנג'ו",  target:4, done:0 }
+  ],
+  focusModels: ["וניו פריים","טוסון היבריד","ג'אקו 7 לקשרי (העמקה)","אומודה 7 ויז'ן","אאוטלנדר אינטנס/אינסטייל","אלנטרה"],
+  incentive: [
+    { name:"אבי פטקייב", target:30, actual:6, potentialPct:0.933 },
+    { name:"אור בנג'ו",  target:22, actual:2, potentialPct:0.455 }
+  ],
+  incentiveNote: "עמידה ביעד \u201cשמיים\u201d מזכה ב‑3,000 ₪ שוברי הייטקזון"
+};
+
+const nf = new Intl.NumberFormat("he-IL");
+const pf = v => Math.round(v*100) + "%";
+const el = id => document.getElementById(id);
+const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+function compute(d){
+  const t = { invoices:0, inProcess:0, open:0, deliveries:0, target:0 };
+  d.reps.forEach(r=>{ t.invoices+=r.invoices; t.inProcess+=r.inProcess; t.open+=r.open; t.deliveries+=r.deliveries; t.target+=r.target; });
+  const elapsed = d.workDaysInMonth>0 ? (d.workDaysInMonth-d.workDaysLeft)/d.workDaysInMonth : 0;
+  const ach = t.target>0 ? t.invoices/t.target : 0;
+  const remaining = Math.max(t.target - t.invoices, 0);
+  const perDay = d.workDaysLeft>0 ? remaining/d.workDaysLeft : 0;
+  const potential = t.target>0 ? (t.invoices+t.inProcess+t.open)/t.target : 0;
+  return { t, elapsed, ach, remaining, perDay, potential };
+}
+
+let countTimers=[];
+function countUp(node, to, fmt){
+  countTimers.forEach(clearInterval); 
+  if(reduce){ node.textContent=fmt(to); return; }
+  const dur=750, t0=performance.now();
+  function step(now){ const p=Math.min((now-t0)/dur,1); const e=1-Math.pow(1-p,3);
+    node.textContent=fmt(to*e); if(p<1) requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+}
+
+function render(d){
+  const c = compute(d);
+  el("subtitle").textContent = "ניהול מכירות חודשי — " + d.month;
+
+  /* hero */
+  const behind = c.ach < c.elapsed;
+  const verdict = el("verdict");
+  verdict.textContent = behind ? "מאחורי הקצב" : "בקצב / לפני הקצב";
+  verdict.className = "verdict " + (behind ? "behind":"ahead");
+  countUp(el("achPct"), c.ach, v=>pf(v));
+  countUp(el("achAbs"), c.t.invoices, v=>nf.format(Math.round(v)));
+  el("achTgt").textContent = nf.format(c.t.target);
+  el("trackEnd").textContent = nf.format(c.t.target);
+  const fill = el("paceFill");
+  fill.className = "fill" + (behind?" behind":"");
+  el("timeNote").textContent = pf(c.elapsed) + " מהחודש חלף";
+  el("hsDays").textContent = nf.format(d.workDaysLeft);
+  countUp(el("hsRate"), c.perDay, v=>v.toFixed(1));
+  el("hsLeft").textContent = nf.format(c.remaining);
+  el("hsPot").textContent = pf(c.potential);
+  requestAnimationFrame(()=>{ setTimeout(()=>{
+    fill.style.width = Math.min(c.ach,1)*100 + "%";
+    el("timeMark").style.right = Math.min(c.elapsed,1)*100 + "%";
+  }, reduce?0:60); });
+
+  /* kpis */
+  const kpis = [
+    {l:"חשבוניות (ביצוע)", v:c.t.invoices, s:"סה״כ נמכרו החודש", color:"var(--teal)"},
+    {l:"מסירות", v:c.t.deliveries, s:"נמסרו ללקוח", color:"#5b8def"},
+    {l:"בתהליך (רישוי)", v:c.t.inProcess, s:"ממתינות להשלמה", color:"var(--violet)"},
+    {l:"תיק פתוח", v:c.t.open, s:"עסקאות פתוחות", color:"var(--amber)"},
+    {l:"יעד כולל", v:c.t.target, s:"יעד חשבוניות לחודש", color:"var(--muted)"}
+  ];
+  el("kpis").innerHTML = kpis.map(k=>`<div class="kpi" style="--accent:${k.color}">
+    <div class="v num" data-to="${k.v}">0</div><div class="l">${k.l}</div><div class="s">${k.s}</div></div>`).join("");
+  el("kpis").querySelectorAll(".v").forEach(n=>countUp(n, +n.dataset.to, v=>nf.format(Math.round(v))));
+
+  /* reps bars (scale to max target) */
+  const maxScale = Math.max(...d.reps.map(r=>Math.max(r.target, r.invoices+r.inProcess+r.open)), 1);
+  el("reps").innerHTML = d.reps.map(r=>{
+    const pipe = r.invoices + r.inProcess + r.open;
+    const aPct = r.target>0 ? r.invoices/r.target : 0;
+    return `<div class="repbar">
+      <div class="row"><span class="name">${r.name}</span>
+        <span class="vals"><b>${nf.format(r.invoices)}</b> / ${nf.format(r.target)} · ${pf(aPct)} · צבר <b>${nf.format(pipe)}</b></span></div>
+      <div class="bartrack">
+        <div class="barpipe" data-w="${pipe/maxScale*100}"></div>
+        <div class="barfill" data-w="${r.invoices/maxScale*100}"></div>
+      </div></div>`;
+  }).join("");
+  requestAnimationFrame(()=>setTimeout(()=>{
+    el("reps").querySelectorAll(".barpipe,.barfill").forEach(b=>b.style.width=b.dataset.w+"%");
+  }, reduce?0:80));
+
+  /* donut: invoices / inProcess / open */
+  const parts = [
+    {n:"חשבוניות", v:c.t.invoices, col:"#2dd4bf"},
+    {n:"בתהליך", v:c.t.inProcess, col:"#8b7cf6"},
+    {n:"תיק פתוח", v:c.t.open, col:"#f5a524"}
+  ];
+  const sum = parts.reduce((a,p)=>a+p.v,0) || 1;
+  let off=0; const R=15.9155;
+  el("donut").innerHTML =
+    `<circle cx="21" cy="21" r="${R}" fill="none" stroke="var(--bg2)" stroke-width="6"></circle>` +
+    parts.map(p=>{ const len=p.v/sum*100; const seg=`<circle cx="21" cy="21" r="${R}" fill="none" stroke="${p.col}" stroke-width="6"
+       stroke-dasharray="${reduce?len:0} 100" stroke-dashoffset="${-off}" style="transition:stroke-dasharray .9s cubic-bezier(.2,.7,.2,1)" data-len="${len}"></circle>`;
+       off+=len; return seg; }).join("");
+  el("dPipe").textContent = nf.format(sum);
+  if(!reduce) requestAnimationFrame(()=>setTimeout(()=>{
+    el("donut").querySelectorAll("circle[data-len]").forEach(ci=>ci.setAttribute("stroke-dasharray", ci.dataset.len+" 100"));
+  },120));
+  el("dlegend").innerHTML = parts.map(p=>`<div class="it"><i style="background:${p.col}"></i>
+     <span class="n">${p.n}</span><span class="x num">${nf.format(p.v)}</span></div>`).join("");
+
+  /* quality */
+  el("quality").innerHTML = d.quality.map(q=>{
+    const dots = Array.from({length:q.target},(_,i)=>`<span class="d ${i<q.done?'on':''}"></span>`).join("");
+    const pct = q.target>0 ? q.done/q.target : 0;
+    return `<div class="qcard"><div class="qn"><span>${q.name}</span><span class="frac num">${nf.format(q.done)}/${nf.format(q.target)}</span></div>
+      <div class="dots">${dots}</div>
+      <div class="qmeta">${q.done===0?"טרם הושלמו משימות איכות החודש":pf(pct)+" הושלמו"}</div></div>`;
+  }).join("");
+  el("focus").innerHTML = d.focusModels.map(m=>`<span class="chip">${m}</span>`).join("");
+
+  /* incentive */
+  el("incentive").innerHTML = (d.incentive||[]).map(r=>{
+    const pct = r.potentialPct!=null ? r.potentialPct : (r.target>0?r.actual/r.target:0);
+    const col = pct>=1?"var(--teal)":pct>=.6?"var(--gold)":"var(--amber)";
+    return `<div class="incrow"><div><div class="nm">${r.name}</div>
+      <div class="det">ביצוע <b style="color:var(--text)">${nf.format(r.actual)}</b> · יעד ${nf.format(r.target)}</div></div>
+      <div class="pc" style="color:${col}">${pf(pct)}</div></div>`;
+  }).join("");
+  el("incnote").textContent = d.incentiveNote || "";
+
+  /* footer */
+  el("foot").innerHTML = `מקור הנתונים: גיליון <code>חשבונית-פתוח-בתהליך</code> · חישוב לפי שם נציג (עמיד להזזת שורות)<br>${window.__lastUpdate||("נתונים מוטמעים — נכון ל"+d.month)}`;
+}
+
+/* ===== refresh from an uploaded / co-hosted .xlsx ===== */
+const LABEL="לקוח / משפחת דגם", TOTAL='סה"כ';
+const txt = v => (v==null?"":String(v)).trim();
+const n = v => { const x=Number(v); return isFinite(x)?x:0; };
+
+function aggregateSales(rows){
+  // detect block headers: a row whose next row's col C is the column-header label
+  const heads=[];
+  for(let i=0;i<rows.length;i++){
+    const c=txt(rows[i]?.[2]);
+    const nx=txt(rows[i+1]?.[2]);
+    if(c && c!==LABEL && c!==TOTAL && nx===LABEL) heads.push({name:c, start:i});
+  }
+  const reps=[];
+  heads.forEach((h,k)=>{
+    const end = k+1<heads.length ? heads[k+1].start : rows.length;
+    let inv=0,inp=0,op=0,del=0;
+    for(let r=h.start+2;r<end;r++){
+      const cC=txt(rows[r]?.[2]), cI=txt(rows[r]?.[8]);
+      if(cC && cC!==LABEL && cC!==TOTAL){ inp+=n(rows[r][3]); op+=n(rows[r][4]); }
+      if(cI && cI!==LABEL && cI!==TOTAL){ inv+=n(rows[r][10]); del+=n(rows[r][11]); }
+    }
+    reps.push({name:h.name, invoices:inv, inProcess:inp, open:op, deliveries:del, target:0});
+  });
+  return reps;
+}
+
+function readTargetsAndQuality(rows, reps){
+  // find header rows where col D == 'ביצוע בפועל' : first = sales targets, second = quality
+  const hdr=[];
+  rows.forEach((row,i)=>{ if(txt(row?.[3])==="ביצוע בפועל") hdr.push(i); });
+  const collect = start => {
+    const map={};
+    if(start==null) return map;
+    for(let i=start+1;i<rows.length;i++){
+      const nm=txt(rows[i]?.[1]);
+      if(!nm) break;
+      map[nm]={ target:n(rows[i][2]), actual:n(rows[i][3]) };
+    }
+    return map;
+  };
+  const sales=collect(hdr[0]), qual=collect(hdr[1]);
+  const norm=s=>s.replace(/\s+/g,"");
+  const find=(map,name)=>{ for(const k in map){ if(norm(k)===norm(name)) return map[k]; } return null; };
+  reps.forEach(r=>{ const s=find(sales,r.name); if(s) r.target=s.target; });
+  const quality = reps.map(r=>{ const q=find(qual,r.name); return {name:r.name, target:q?q.target:4, done:q?q.actual:0}; });
+  return quality;
+}
+
+async function parseWorkbook(arrayBuffer){
+  await ensureXLSX();
+  const wb = XLSX.read(arrayBuffer, {type:"array"});
+  const dataSheet = wb.Sheets["חשבונית-פתוח-בתהליך"];
+  if(!dataSheet) throw new Error("לא נמצא גיליון הנתונים");
+  const rows = XLSX.utils.sheet_to_json(dataSheet, {header:1, raw:true, defval:null});
+  const reps = aggregateSales(rows);
+  if(!reps.length) throw new Error("לא זוהו בלוקים של נציגים");
+  let quality = SNAPSHOT.quality, focus = SNAPSHOT.focusModels, incentive = SNAPSHOT.incentive;
+  const tgt = wb.Sheets["יעדים"];
+  if(tgt){
+    const trows = XLSX.utils.sheet_to_json(tgt,{header:1,raw:true,defval:null});
+    quality = readTargetsAndQuality(trows, reps);
+    // focus models: column B entries after a 'דגמים במיקוד' marker
+    const fi = trows.findIndex(r=>txt(r?.[1])==="דגמים במיקוד");
+    if(fi>=0){ const fm=[]; for(let i=fi+1;i<trows.length;i++){ const v=txt(trows[i]?.[1]); if(v && v!=="קונה") fm.push(v); else if(!v && fm.length) break; } if(fm.length) focus=fm; }
+  }
+  const inc = wb.Sheets["אינסנטיב יוני"];
+  if(inc){
+    const irows = XLSX.utils.sheet_to_json(inc,{header:1,raw:true,defval:null});
+    const list=[];
+    irows.forEach(r=>{ const nm=txt(r?.[0]); const tg=n(r?.[1]); if(nm && tg && nm!=='מת"ל') list.push({name:nm,target:tg,actual:n(r[2]),potentialPct:n(r[5])}); });
+    if(list.length) incentive=list;
+  }
+  // keep month/workdays from snapshot (they are TODAY-driven in Excel; not reliably in cells)
+  return { ...SNAPSHOT, reps, quality, focusModels:focus, incentive };
+}
+
+let xlsxLoading=null;
+function ensureXLSX(){
+  if(window.XLSX) return Promise.resolve();
+  if(xlsxLoading) return xlsxLoading;
+  xlsxLoading = new Promise((res,rej)=>{
+    const s=document.createElement("script");
+    s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    s.onload=res; s.onerror=()=>rej(new Error("טעינת מנוע האקסל נכשלה (נדרש חיבור לאינטרנט)"));
+    document.head.appendChild(s);
+  });
+  return xlsxLoading;
+}
+
+function showNotice(html, kind){
+  const nEl=el("notice"); nEl.innerHTML=html; nEl.className="notice show";
+}
+function setLive(on){
+  const p=el("srcPill"), l=el("srcLabel");
+  if(on){ p.className="pill"; l.textContent="נטען מקובץ · "+new Date().toLocaleString("he-IL"); window.__lastUpdate="עודכן מקובץ: "+new Date().toLocaleString("he-IL"); }
+}
+
+async function loadFromBuffer(buf){
+  try{
+    const data = await parseWorkbook(buf);
+    render(data); setLive(true);
+    el("notice").className="notice"; // hide
+  }catch(err){
+    showNotice(`<div><b>ממשיך עם הנתונים המוטמעים.</b> לא הצלחתי לקרוא את הקובץ: ${err.message}.</div>`);
+  }
+}
+
+/* wire controls */
+el("loadBtn").onclick = ()=>el("fileInput").click();
+el("fileInput").onchange = e=>{ const f=e.target.files[0]; if(!f) return;
+  const rd=new FileReader(); rd.onload=()=>loadFromBuffer(rd.result); rd.readAsArrayBuffer(f); };
+el("refreshBtn").onclick = ()=>{ tryAutoFetch(true); };
+
+// drag & drop anywhere
+addEventListener("dragover",e=>{e.preventDefault();});
+addEventListener("drop",e=>{e.preventDefault(); const f=e.dataTransfer.files[0]; if(f){ const rd=new FileReader(); rd.onload=()=>loadFromBuffer(rd.result); rd.readAsArrayBuffer(f);} });
+
+/* if hosted next to a data.xlsx, auto-load it (true "live" when you replace the file on the host) */
+async function tryAutoFetch(manual){
+  if(location.protocol!=="http:" && location.protocol!=="https:"){
+    if(manual) showNotice(`<div><b>טעינה אוטומטית פעילה רק באירוח באינטרנט.</b> כדי לעדכן עכשיו, לחץ על \u201cטען קובץ אקסל\u201d ובחר את הקובץ העדכני.</div>`);
+    return;
+  }
+  try{
+    const res = await fetch("./data.xlsx", {cache:"no-store"});
+    if(!res.ok) throw 0;
+    const buf = await res.arrayBuffer();
+    await loadFromBuffer(buf);
+  }catch(_){ if(manual) showNotice(`<div><b>לא נמצא קובץ <code>data.xlsx</code> לצד הדף.</b> אפשר לטעון ידנית עם \u201cטען קובץ אקסל\u201d.</div>`); }
+}
+
+/* initial paint */
+render(SNAPSHOT);
+tryAutoFetch(false);
+</script>
+</body>
+</html>
