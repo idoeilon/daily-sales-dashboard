@@ -460,7 +460,7 @@ function readTargetsAndQuality(rows, reps){
   const sales=collect(hdr[0]), qual=collect(hdr[1]);
   const norm=s=>s.replace(/\s+/g,"");
   const find=(map,name)=>{ for(const k in map){ if(norm(k)===norm(name)) return map[k]; } return null; };
-  reps.forEach(r=>{ if(!r.target){ const s=find(sales,r.name); if(s) r.target=s.target; } });
+  reps.forEach(r=>{ const s=find(sales,r.name); if(s) r.target=s.target; });
   const quality = reps.map(r=>{ const q=find(qual,r.name); return {name:r.name, target:q?q.target:4, done:q?q.actual:0}; });
   return quality;
 }
@@ -477,7 +477,16 @@ async function parseWorkbook(arrayBuffer){
     throw new Error("לא זוהו בלוקים של נציגים. עמודה C מכילה: " + (sample || "(ריק)"));
   }
   const norm = s => s.replace(/\s+/g,"");
-  // targets: prefer the 'לוח בקרה' sheet (name + target input), then fall back to 'יעדים'
+  // targets: PRIMARY source is the 'יעדים' sheet (C4/C5 — where targets are maintained);
+  // the 'לוח בקרה' sheet is only a fallback for reps not listed in 'יעדים'.
+  let quality = SNAPSHOT.quality, focus = SNAPSHOT.focusModels, incentive = SNAPSHOT.incentive;
+  const tgt = wb.Sheets["יעדים"];
+  if(tgt){
+    const trows = XLSX.utils.sheet_to_json(tgt,{header:1,raw:true,defval:null});
+    quality = readTargetsAndQuality(trows, reps);   // sets reps[].target from יעדים
+    const fi = trows.findIndex(r=>txt(r?.[1])==="דגמים במיקוד");
+    if(fi>=0){ const fm=[]; for(let i=fi+1;i<trows.length;i++){ const v=txt(trows[i]?.[1]); if(v && v!=="קונה") fm.push(v); else if(!v && fm.length) break; } if(fm.length) focus=fm; }
+  }
   const dash = wb.Sheets["לוח בקרה"];
   if(dash){
     const drows = XLSX.utils.sheet_to_json(dash,{header:1,raw:true,defval:null});
@@ -485,16 +494,7 @@ async function parseWorkbook(arrayBuffer){
     const tmap = {};
     drows.forEach(row=>{ const nm=txt(row?.[1]); const tv=Number(row?.[2]);
       if(nm && !skip.has(nm) && row?.[2]!=null && row?.[2]!=="" && isFinite(tv)) tmap[nm]=tv; });
-    reps.forEach(r=>{ for(const k in tmap){ if(norm(k)===norm(r.name)){ r.target=tmap[k]; break; } } });
-  }
-  let quality = SNAPSHOT.quality, focus = SNAPSHOT.focusModels, incentive = SNAPSHOT.incentive;
-  const tgt = wb.Sheets["יעדים"];
-  if(tgt){
-    const trows = XLSX.utils.sheet_to_json(tgt,{header:1,raw:true,defval:null});
-    quality = readTargetsAndQuality(trows, reps);
-    // focus models: column B entries after a 'דגמים במיקוד' marker
-    const fi = trows.findIndex(r=>txt(r?.[1])==="דגמים במיקוד");
-    if(fi>=0){ const fm=[]; for(let i=fi+1;i<trows.length;i++){ const v=txt(trows[i]?.[1]); if(v && v!=="קונה") fm.push(v); else if(!v && fm.length) break; } if(fm.length) focus=fm; }
+    reps.forEach(r=>{ if(!r.target){ for(const k in tmap){ if(norm(k)===norm(r.name)){ r.target=tmap[k]; break; } } } });
   }
   const inc = wb.Sheets["אינסנטיב יוני"];
   if(inc){
