@@ -196,6 +196,54 @@
   .pc-name{font-size:13px;color:var(--text)}
   .pc-v{font-weight:800;font-size:13px;background:var(--surface2);border:1px solid var(--line2);border-radius:7px;padding:1px 10px;min-width:34px;text-align:center}
   .pempty{color:var(--muted);text-align:center;padding:24px}
+  /* ---- tabs ---- */
+  .tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .tab{height:38px;padding:0 18px;border-radius:11px;border:1px solid var(--line2);background:var(--surface);
+    color:var(--muted);font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:.15s}
+  .tab:hover{border-color:var(--teal);color:var(--text)}
+  .tab.active{background:linear-gradient(150deg,#1ec9b3,#3f7bf0);border-color:transparent;color:#04121a}
+
+  /* ---- stock orders screen ---- */
+  .so-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+  .so-head h2{margin:0;font-size:19px;font-weight:800}
+  .so-head p{margin:3px 0 0;color:var(--muted);font-size:12.5px}
+  .so-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:16px}
+  .so-kpi{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:13px 14px;position:relative;overflow:hidden}
+  .so-kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--c,var(--teal))}
+  .so-kpi-v{font-size:24px;font-weight:800;line-height:1}
+  .so-kpi-v.sm{font-size:15px}
+  .so-kpi-l{color:var(--muted);font-size:11.5px;font-weight:600;margin-top:6px}
+  .so-filters{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:13px}
+  .so-input{height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg2);
+    color:var(--text);font:inherit;font-size:13px;min-width:140px}
+  .so-input:focus{outline:2px solid var(--teal);outline-offset:1px}
+  .so-clear{cursor:pointer;min-width:78px;color:var(--muted)}
+  .so-clear:hover{color:var(--text);border-color:var(--rose)}
+  .so-count{color:var(--faint);font-size:12px;margin-bottom:8px}
+  .so-tablewrap{overflow:auto;max-height:62vh;border:1px solid var(--line);border-radius:14px}
+  .so-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
+  .so-table th{position:sticky;top:0;background:var(--surface2);color:#cdd6e6;font-weight:700;text-align:right;
+    padding:10px 11px;border-bottom:1px solid var(--line2);z-index:1}
+  .so-table td{padding:9px 11px;border-bottom:1px solid #1f2738;color:#dbe3f0}
+  .so-row:hover td{background:#171e2d}
+  .so-row td:first-child{box-shadow:inset 3px 0 0 transparent}
+  .so-urg-green  td:first-child{box-shadow:inset 3px 0 0 #22c55e}
+  .so-urg-orange td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
+  .so-urg-red    td:first-child{box-shadow:inset 3px 0 0 #ef4444}
+  .so-urg-crit   td:first-child{box-shadow:inset 3px 0 0 #b91c1c}
+  .so-urg-red    td{background:rgba(239,68,68,.05)}
+  .so-urg-crit   td{background:rgba(185,28,28,.12)}
+  .so-days{font-weight:700}
+  .so-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-inline-start:7px;vertical-align:0}
+  .so-dot.so-green{background:#22c55e}.so-dot.so-orange{background:#f59e0b}.so-dot.so-red{background:#ef4444}.so-dot.so-crit{background:#b91c1c;box-shadow:0 0 0 3px rgba(185,28,28,.25)}
+  .so-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700}
+  .so-b-green{background:rgba(34,197,94,.16);color:#4ade80}
+  .so-b-orange{background:rgba(245,165,36,.16);color:#f5b54a}
+  .so-b-red{background:rgba(239,68,68,.18);color:#f87171}
+  .so-empty{text-align:center;color:var(--muted);padding:26px}
+  .so-loading{color:var(--muted);padding:18px}
+  @media (max-width:1024px){ .so-kpis{grid-template-columns:repeat(3,1fr)} }
+  @media (max-width:620px){ .so-kpis{grid-template-columns:repeat(2,1fr)} }
 </style>
 </head>
 <body>
@@ -220,6 +268,13 @@
   </div>
 
   <div class="notice" id="notice"></div>
+
+  <div class="tabs">
+    <button class="tab active" data-screen="sales">מכירות ואיכות</button>
+    <button class="tab" data-screen="stock">הזמנות במלאי</button>
+  </div>
+
+  <div id="screen-sales">
 
   <!-- HERO: pace -->
   <section class="hero">
@@ -291,6 +346,39 @@
   </section>
 
   <div class="foot" id="foot"></div>
+  </div><!-- /#screen-sales -->
+
+  <div id="screen-stock" hidden>
+    <div class="so-head">
+      <div>
+        <h2>הזמנות במלאי — גבייה ומסירה</h2>
+        <p>הזמנות שהרכב שלהן כבר נמצא במלאי (סטטוס "במלאי") — לקידום גבייה ומסירה</p>
+      </div>
+    </div>
+    <div id="so-error" class="notice" style="margin:0 0 14px"></div>
+    <div id="so-kpis" class="so-kpis"></div>
+    <div class="so-filters">
+      <input  id="so-q"     class="so-input" type="search" placeholder="חיפוש: לקוח / מס׳ הזמנה / דגם / שלדה">
+      <select id="so-rep"   class="so-input"></select>
+      <select id="so-model" class="so-input"></select>
+      <select id="so-loc"   class="so-input"></select>
+      <select id="so-days"  class="so-input">
+        <option value="">כל הימים</option>
+        <option value="0-3">עד 3 ימים</option>
+        <option value="4-7">4–7 ימים</option>
+        <option value="7+">מעל 7 ימים</option>
+        <option value="14+">מעל 14 ימים</option>
+      </select>
+      <button id="so-clear" class="so-input so-clear">נקה</button>
+    </div>
+    <div id="so-count" class="so-count"></div>
+    <div class="so-tablewrap">
+      <table class="so-table" id="so-table">
+        <thead><tr id="so-thead"></tr></thead>
+        <tbody id="so-tbody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div class="modal" id="modal" aria-hidden="true">
@@ -307,7 +395,7 @@
 
 <script>
 /* ===== embedded snapshot (current data from the workbook) ===== */
-const SNAPSHOT = {"month":"יוני 2026","workDaysInMonth":22,"workDaysLeft":13,"reps":[{"name":"אבי פטקייב","invoices":9,"inProcess":15,"open":10,"deliveries":11,"target":20,"detail":{"invoices":[{"c":"לביב סחר רכב בע\"מ","v":2},{"c":"רום מוטורס בע\"מ","v":2},{"c":"למונס איי אל בע\"מ","v":1},{"c":"קארמה ליס בע\"מ","v":1},{"c":"סיריוס אלקטרוניקה בע\"מ","v":1},{"c":"ינון פז בע\"מ","v":1},{"c":"רום גבס חיפוי וקירוי (1997) בע\"מ","v":1}],"inProcess":[{"c":"יעד ליסינג ומימון לרכב בע\"מ","v":6},{"c":"למונס סימפל מובילטי בע\"מ","v":2},{"c":"גולן לירוי אחזקות בע\"מ","v":1},{"c":"סיריוס אלקטרוניקה בע\"מ","v":1},{"c":"ניו קאר ליס מוטורס בע\"מ","v":1},{"c":"רגבים - אגרוליס בע'מ","v":1},{"c":"י.א. רויאל מוטורס בע\"מ","v":1},{"c":"מילניום שרותים ולוגסטיקה בע\"מ","v":1},{"c":"ש.ו.ת. ורד בר כבישים ופיתוח בע\"מ","v":1}],"open":[{"c":"סיריוס אלקטרוניקה בע\"מ","v":1},{"c":"ניו קאר ליס מוטורס בע\"מ","v":1},{"c":"למונס איי אל בע\"מ","v":1},{"c":"רום מוטורס בע\"מ","v":2},{"c":"לביב סחר רכב בע\"מ","v":2},{"c":"רום גבס חיפוי וקירוי (1997) בע\"מ","v":1},{"c":"ינון פז בע\"מ","v":1},{"c":"קארמה ליס בע\"מ","v":1}],"deliveries":[{"c":"לביב סחר רכב בע\"מ","v":2},{"c":"רום מוטורס בע\"מ","v":1},{"c":"למונס איי אל בע\"מ","v":1},{"c":"קארמה ליס בע\"מ","v":1},{"c":"רום גבס חיפוי וקירוי (1997) בע\"מ","v":1},{"c":"סיסטמטיקס בע'מ","v":2},{"c":"הקניה הבטוחה (2000) בע\"מ","v":1},{"c":"נתיבי ישראל הסעות וטיולים בע\"מ","v":2}]}},{"name":"אור בנג'ו","invoices":3,"inProcess":8,"open":4,"deliveries":8,"target":15,"detail":{"invoices":[{"c":"שדה מיבנים ומכולות בע\"מ","v":1},{"c":"אי.אל. מדי-מרקט בע\"מ","v":1},{"c":"קפיטל מוטורס בע\"מ","v":1}],"inProcess":[{"c":"פירסט מוטורס ניהול צי רכב בע\"מ","v":3},{"c":"איתן ספקים לבתי מרקחת בע\"מ","v":2},{"c":"ק.ש.ן נאמנויות בע\"מ","v":1},{"c":"יקיר ב. בע\"מ","v":1},{"c":"שפר-בר החברה לפיננסים והשקעות בע\"מ","v":1}],"open":[{"c":"קפיטל מוטורס בע\"מ","v":1},{"c":"מ.פינס בע''מ","v":1},{"c":"שדה מיבנים ומכולות בע\"מ","v":1},{"c":"אי.אל. מדי-מרקט בע\"מ","v":1}],"deliveries":[{"c":"שדה מיבנים ומכולות בע\"מ","v":1},{"c":"אי.אל. מדי-מרקט בע\"מ","v":1},{"c":"קפיטל מוטורס בע\"מ","v":1},{"c":"ח.ל חלקי חילוף לרכב בע\"מ","v":1},{"c":"דרך מבורכת ייעוץ בע\"מ","v":1},{"c":"שחאדה טרייד אין","v":1},{"c":"מ.פינס בע''מ","v":1},{"c":"רכב סלמאן בע\"מ","v":1}]}}],"quality":[{"name":"אבי פטקייב","target":4,"done":0},{"name":"אור בנג'ו","target":4,"done":0}],"focusModels":["וניו פריים","טוסון היבריד","ג'אקו 7 לקשרי (העמקה)","אומודה 7 ויז'ן","אאוטלנדר אינטנס/אינסטייל","אלנטרה"],"incentive":[{"name":"אבי פטקייב","target":30,"actual":9,"potentialPct":1.1333333333333333},{"name":"אור בנג'ו","target":22,"actual":3,"potentialPct":0.6818181818181818}],"incentiveNote":"עמידה ביעד “שמיים” מזכה ב-3,000 ₪ שוברי הייטקזון"};
+/* נתוני הדמו (SNAPSHOT) הוסרו — הדאשבורד נטען אך ורק מ-Google Sheets, ללא נפילה חזרה לדמו. */
 
 const nf = new Intl.NumberFormat("he-IL");
 const pf = v => Math.round(v*100) + "%";
@@ -531,115 +619,223 @@ function readTargetsAndQuality(rows, reps){
   return reps.map(r=>{ const q=find(qual,r.name); return {name:r.name, target:q?q.target:4, done:q?q.actual:0}; });
 }
 
-async function parseWorkbook(arrayBuffer){
-  await ensureXLSX();
-  const wb = XLSX.read(arrayBuffer, {type:"array"});
-  const dataSheet = wb.Sheets["חשבונית-פתוח-בתהליך"];
-  if(!dataSheet) throw new Error("לא נמצא גיליון הנתונים");
-  const rows = XLSX.utils.sheet_to_json(dataSheet, {header:1, raw:true, defval:null});
+/* ====================== DATA LAYER ======================
+   מקור הנתונים הקבוע: Google Sheets דרך Apps Script (JSONP).
+   טעינת Excel מקומית = אופציונלית לבדיקה בלבד (זמני עד רענון הדף). */
+
+/* >>> הגדר כאן את כתובת ה-Web App של ה-Apps Script שלך <<< */
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7b68OcpxzslfgFGSh0e9koGiZ-pnixEnYsjjgrHD7n6LouQp-3dNwVLKvnPcjrjZl3w/exec";
+
+const HEB_MONTHS=["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+function monthLabel(){ const d=new Date(); return HEB_MONTHS[d.getMonth()]+" "+d.getFullYear(); }
+
+function jsonp(url, params){
+  return new Promise((resolve,reject)=>{
+    if(!url || url.indexOf("PASTE_")===0){ reject(new Error("לא הוגדרה כתובת Apps Script (APPS_SCRIPT_URL)")); return; }
+    const cb="cb_"+Date.now()+"_"+Math.floor(Math.random()*1e6);
+    const s=document.createElement("script");
+    const to=setTimeout(()=>{ done(); reject(new Error("פג זמן הבקשה ל-Apps Script")); },20000);
+    function done(){ clearTimeout(to); try{delete window[cb];}catch(e){window[cb]=undefined;} if(s.parentNode) s.parentNode.removeChild(s); }
+    window[cb]=(data)=>{ done(); resolve(data); };
+    s.onerror=()=>{ done(); reject(new Error("שגיאת רשת / כתובת Apps Script לא תקינה")); };
+    const qs=Object.keys(params).map(k=>encodeURIComponent(k)+"="+encodeURIComponent(params[k])).join("&");
+    s.src=url+(url.indexOf("?")>=0?"&":"?")+qs+"&callback="+cb;
+    document.head.appendChild(s);
+  });
+}
+
+/* בונה את אובייקט הדאשבורד מתוך ספק-שורות. אותו פרסר בדיוק לאקסל מקומי וגם ל-Apps Script. */
+function buildData(getRows){
+  const rows = getRows("חשבונית-פתוח-בתהליך");
+  if(!rows || !rows.length) throw new Error("לא נמצאו נתוני מכירות (גיליון 'חשבונית-פתוח-בתהליך')");
   const reps = aggregateSales(rows);
   if(!reps.length){
-    const sample = rows.map(r=>txt(r?.[2])).filter(Boolean).slice(0,10).join(" · ");
-    throw new Error("לא זוהו בלוקים של נציגים [מהדורה "+BUILD+"]. עמודה C מכילה: " + (sample || "(ריק)"));
+    const sample = rows.map(r=>txt(r && r[2])).filter(Boolean).slice(0,8).join(" · ");
+    throw new Error("לא זוהו בלוקים של נציגים [מהדורה "+BUILD+"]. דגימה: "+(sample||"(ריק)"));
   }
-  const norm = s => s.replace(/\s+/g,"");
-  // targets: PRIMARY source is the 'יעדים' sheet; 'לוח בקרה' is only a fallback.
-  let quality = SNAPSHOT.quality, focus = SNAPSHOT.focusModels, incentive = SNAPSHOT.incentive;
-  const tgt = wb.Sheets["יעדים"];
-  if(tgt){
-    const trows = XLSX.utils.sheet_to_json(tgt,{header:1,raw:true,defval:null});
+  const norm=s=>s.replace(/\s+/g,"");
+  let quality=[], focus=[], incentive=[], wdMonth=0, wdLeft=0;
+  const trows = getRows("יעדים");
+  if(trows){
     quality = readTargetsAndQuality(trows, reps);
-    // focus models: find the 'דגמים במיקוד' cell, then read names below in the same column
-    let fRow=-1, fCol=-1;
-    trows.forEach((row,i)=>{ if(fRow<0 && row) row.forEach((c,j)=>{ if(txt(c)==="דגמים במיקוד"){ fRow=i; fCol=j; } }); });
-    if(fRow>=0){ const fm=[]; for(let i=fRow+1;i<trows.length;i++){ const v=txt(trows[i]?.[fCol]); if(v && v!=="קונה") fm.push(v); else if(!v && fm.length) break; } if(fm.length) focus=fm; }
-  }
-  const dash = wb.Sheets["לוח בקרה"];
-  if(dash){
-    const drows = XLSX.utils.sheet_to_json(dash,{header:1,raw:true,defval:null});
-    let hi=-1; drows.forEach((row,i)=>{ if(hi<0 && row && row.some(c=>txt(c)==="שם מוכר")) hi=i; });
-    if(hi>=0){
-      let nameIdx=-1, tgtIdx=-1;
-      (drows[hi]||[]).forEach((c,j)=>{ const t=txt(c); if(t==="שם מוכר")nameIdx=j; if(t==="יעד")tgtIdx=j; });
-      if(nameIdx>=0 && tgtIdx>=0){
-        for(let i=hi+1;i<drows.length;i++){ const nm=txt(drows[i]?.[nameIdx]); if(!nm||nm===TOTAL) continue; const tv=n(drows[i][tgtIdx]);
-          reps.forEach(r=>{ if(!r.target && norm(r.name)===norm(nm)) r.target=tv; }); }
-      }
+    let fRow=-1,fCol=-1;
+    trows.forEach((row,i)=>{ if(fRow<0&&row) row.forEach((c,j)=>{ if(txt(c)==="דגמים במיקוד"){fRow=i;fCol=j;} }); });
+    if(fRow>=0){ const fm=[]; for(let i=fRow+1;i<trows.length;i++){ const v=txt(trows[i] && trows[i][fCol]); if(v&&v!=="קונה") fm.push(v); else if(!v&&fm.length) break; } focus=fm; }
+    let hRow=-1; trows.forEach((row,i)=>{ if(hRow<0&&row&&row.some(c=>txt(c)==="ביצוע בפועל")) hRow=i; });
+    if(hRow>=0){ const hr=trows[hRow]||[]; let li=-1,mi=-1;
+      hr.forEach((c,j)=>{ const t=txt(c); if(t.indexOf("שנותרו")>=0) li=j; if(t.indexOf("ימים חודשי")>=0) mi=j; });
+      const dr=trows[hRow+1]||[]; if(li>=0) wdLeft=n(dr[li]); if(mi>=0) wdMonth=n(dr[mi]);
     }
   }
-  const inc = wb.Sheets["אינסנטיב יוני"];
-  if(inc){
-    const irows = XLSX.utils.sheet_to_json(inc,{header:1,raw:true,defval:null});
-    const list=[];
-    irows.forEach(r=>{ const nm=txt(r?.[0]); const tg=n(r?.[1]); if(nm && tg && nm!=='מת"ל') list.push({name:nm,target:tg,actual:n(r[2]),potentialPct:n(r[5])}); });
-    if(list.length) incentive=list;
-  }
-  // keep month/workdays from snapshot (they are TODAY-driven in Excel; not reliably in cells)
-  return { ...SNAPSHOT, reps, quality, focusModels:focus, incentive };
+  const irows = getRows("אינסנטיב יוני");
+  if(irows){ irows.forEach(r=>{ const nm=txt(r && r[0]); const tg=n(r && r[1]); if(nm&&tg&&nm!=='מת"ל') incentive.push({name:nm,target:tg,actual:n(r[2]),potentialPct:n(r[5])}); }); }
+  return { month:monthLabel(), workDaysInMonth:wdMonth, workDaysLeft:wdLeft, reps, quality, focusModels:focus, incentive,
+           incentiveNote:"עמידה ביעד \u201cשמיים\u201d מזכה ב-3,000 \u20aa שוברי הייטקזון" };
+}
+
+/* ספק-שורות מתוך קובץ אקסל מקומי (SheetJS) */
+async function rowsFromWorkbook(arrayBuffer){
+  await ensureXLSX();
+  const wb = XLSX.read(arrayBuffer,{type:"array"});
+  return (name)=>{ const sh=wb.Sheets[name]; return sh ? XLSX.utils.sheet_to_json(sh,{header:1,raw:true,defval:null}) : null; };
 }
 
 let xlsxLoading=null;
 function ensureXLSX(){
   if(window.XLSX) return Promise.resolve();
   if(xlsxLoading) return xlsxLoading;
-  xlsxLoading = new Promise((res,rej)=>{
-    const s=document.createElement("script");
+  xlsxLoading=new Promise((res,rej)=>{ const s=document.createElement("script");
     s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
-    s.onload=res; s.onerror=()=>rej(new Error("טעינת מנוע האקסל נכשלה (נדרש חיבור לאינטרנט)"));
-    document.head.appendChild(s);
-  });
+    s.onload=res; s.onerror=()=>rej(new Error("טעינת מנוע האקסל נכשלה (נדרש אינטרנט)")); document.head.appendChild(s); });
   return xlsxLoading;
 }
 
-function showNotice(html, kind){
-  const nEl=el("notice"); nEl.innerHTML=html; nEl.className="notice show"+(kind==="ok"?" ok":"");
-}
-function setLive(on){
+function showNotice(html, kind){ const nEl=el("notice"); nEl.innerHTML=html; nEl.className="notice show"+(kind?(" "+kind):""); }
+function hideNotice(){ el("notice").className="notice"; }
+function setSource(kind){
   const p=el("srcPill"), l=el("srcLabel");
-  if(on){ p.className="pill"; l.textContent="נטען מקובץ · "+new Date().toLocaleString("he-IL"); window.__lastUpdate="עודכן מקובץ: "+new Date().toLocaleString("he-IL"); }
+  if(kind==="live"){ p.className="pill"; l.textContent="מחובר ל-Google Sheets · "+new Date().toLocaleTimeString("he-IL"); }
+  else if(kind==="local"){ p.className="pill embedded"; l.textContent="קובץ מקומי (זמני)"; }
+  else if(kind==="loading"){ p.className="pill embedded"; l.textContent="טוען מ-Google Sheets…"; }
+  else { p.className="pill embedded"; l.textContent="שגיאת חיבור"; }
 }
 
+/* ====== PRIMARY source: Apps Script (Google Sheets). נטען אוטומטית בכל רענון. ====== */
+async function loadData(){
+  hideNotice(); setSource("loading");
+  try{
+    const resp = await jsonp(APPS_SCRIPT_URL, {action:"sales"});
+    if(resp && resp.ok===false) throw new Error(resp.error||"שגיאה מהשרת");
+    const sheets = resp && (resp.sheets || resp.data);
+    if(!sheets) throw new Error("מבנה תגובה לא צפוי מ-Apps Script");
+    const data = buildData(name => sheets[name] || null);
+    render(data); setSource("live");
+  }catch(err){
+    setSource("error");
+    showNotice('<div><b>לא ניתן לטעון נתונים מ-Google Sheets.</b> '+err.message+'. בדוק את כתובת ה-Apps Script ואת ההרשאות.</div>',"err");
+  }
+}
+
+/* ====== OPTIONAL: local Excel — לבדיקה בלבד, זמני עד רענון ====== */
 async function loadFromBuffer(buf){
   try{
-    const data = await parseWorkbook(buf);
-    render(data); setLive(true);
-    const c = compute(data);
-    showNotice(`<div><b>הנתונים עודכנו מהקובץ.</b> ${data.reps.length} נציגים · יעד כולל ${nf.format(c.t.target)} · חשבוניות ${nf.format(c.t.invoices)} · ${pf(c.ach)} ביצוע.</div>`, "ok");
+    const data = buildData(await rowsFromWorkbook(buf));
+    render(data); setSource("local");
+    const c=compute(data);
+    showNotice('<div><b>קובץ Excel שנטען ידנית נשמר רק עד רענון הדף. לעדכון קבוע יש לעדכן את Google Sheet.</b><br>נטען זמנית: '
+      +data.reps.length+' נציגים · יעד כולל '+nf.format(c.t.target)+' · חשבוניות '+nf.format(c.t.invoices)+'.</div>',"ok");
   }catch(err){
-    showNotice(`<div><b>ממשיך עם הנתונים המוטמעים.</b> לא הצלחתי לקרוא את הקובץ: ${err.message}.</div>`);
+    showNotice('<div><b>לא הצלחתי לקרוא את הקובץ.</b> '+err.message+'.</div>',"err");
   }
 }
 
 /* wire controls */
-el("loadBtn").onclick = ()=>el("fileInput").click();
-el("fileInput").onchange = e=>{ const f=e.target.files[0]; if(!f) return;
-  const rd=new FileReader(); rd.onload=()=>loadFromBuffer(rd.result); rd.readAsArrayBuffer(f); };
-el("refreshBtn").onclick = ()=>{ tryAutoFetch(true); };
-el("modalClose").onclick = closePopup;
-el("modalBackdrop").onclick = closePopup;
-addEventListener("keydown", e=>{ if(e.key==="Escape") closePopup(); });
-
-// drag & drop anywhere
+el("loadBtn").onclick=()=>el("fileInput").click();
+el("fileInput").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>loadFromBuffer(rd.result); rd.readAsArrayBuffer(f); };
+el("refreshBtn").onclick=()=>loadData();
+el("modalClose").onclick=closePopup;
+el("modalBackdrop").onclick=closePopup;
+addEventListener("keydown",e=>{ if(e.key==="Escape") closePopup(); });
 addEventListener("dragover",e=>{e.preventDefault();});
 addEventListener("drop",e=>{e.preventDefault(); const f=e.dataTransfer.files[0]; if(f){ const rd=new FileReader(); rd.onload=()=>loadFromBuffer(rd.result); rd.readAsArrayBuffer(f);} });
 
-/* if hosted next to a data.xlsx, auto-load it (true "live" when you replace the file on the host) */
-async function tryAutoFetch(manual){
-  if(location.protocol!=="http:" && location.protocol!=="https:"){
-    if(manual) showNotice(`<div><b>טעינה אוטומטית פעילה רק באירוח באינטרנט.</b> כדי לעדכן עכשיו, לחץ על \u201cטען קובץ אקסל\u201d ובחר את הקובץ העדכני.</div>`);
-    return;
-  }
-  try{
-    const res = await fetch("./data.xlsx", {cache:"no-store"});
-    if(!res.ok) throw 0;
-    const buf = await res.arrayBuffer();
-    await loadFromBuffer(buf);
-  }catch(_){ if(manual) showNotice(`<div><b>לא נמצא קובץ <code>data.xlsx</code> לצד הדף.</b> אפשר לטעון ידנית עם \u201cטען קובץ אקסל\u201d.</div>`); }
+/* ====== TABS ====== */
+function showScreen(which){
+  el("screen-sales").hidden = (which!=="sales");
+  el("screen-stock").hidden = (which!=="stock");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.screen===which));
+  if(which==="stock") StockOrders.show();
 }
+document.querySelectorAll(".tab").forEach(t=>{ t.onclick=()=>showScreen(t.dataset.screen); });
 
-/* initial paint */
-render(SNAPSHOT);
-tryAutoFetch(false);
+/* ====== STOCK ORDERS screen (data from Apps Script action=stockOrders) ====== */
+var StockOrders=(function(){
+  var raw=[], view=[], loaded=false, CAP=400;
+  var COLS=[
+    {k:'rep',t:'מת"ל'},{k:'customer',t:'לקוח'},{k:'order',t:'מס׳ הזמנה'},{k:'model',t:'דגם'},
+    {k:'trim',t:'גימור'},{k:'color',t:'צבע'},{k:'vin',t:'מס׳ שלדה'},{k:'orderDate',t:'תאריך הזמנה'},
+    {k:'__days',t:'ימים מההזמנה'},{k:'status',t:'סטטוס'},{k:'location',t:'מיקום רכב'},{k:'plate',t:'לוחית'},{k:'__action',t:'פעולה'}
+  ];
+  function g(id){ return document.getElementById(id); }
+  function days(d){ if(!d) return 0; var t=new Date(d); if(isNaN(t.getTime())) return 0; return Math.max(0,Math.floor((Date.now()-t.getTime())/86400000)); }
+  function urg(d){ return d>14?'crit':d>7?'red':d>=4?'orange':'green'; }
+  function actOf(d){ return d>14?'דחוף — לקדם מסירה':d>7?'ליצור קשר / לעקוב':'במעקב'; }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+  function tx(v){ return v==null?'':String(v).trim(); }
+  function proc(list){ return (list||[]).map(function(o){ var c={}; for(var k in o) c[k]=o[k]; c.__days=days(o.orderDate); c.__urg=urg(c.__days); c.__action=actOf(c.__days); return c; }); }
+  function uniq(a){ return a.filter(function(v,i){return v!==''&&a.indexOf(v)===i;}).sort(function(x,y){return x.localeCompare(y,'he');}); }
+  function fill(sel,items,all){ if(!sel)return; sel.innerHTML='<option value="">'+all+'</option>'+items.map(function(v){return '<option>'+esc(v)+'</option>';}).join(''); }
+  function soErr(m){ var e=g("so-error"); if(!m){ e.className="notice"; return; } e.innerHTML='<div><b>'+esc(m)+'</b></div>'; e.className="notice show err"; }
+
+  function apply(){
+    var q=tx(g("so-q").value).toLowerCase(), rep=g("so-rep").value, model=g("so-model").value, loc=g("so-loc").value, ds=g("so-days").value;
+    view=raw.filter(function(o){
+      if(rep && tx(o.rep)!==rep) return false;
+      if(model && tx(o.model)!==model) return false;
+      if(loc && tx(o.location)!==loc) return false;
+      if(ds){ var d=o.__days;
+        if(ds==='0-3'&&!(d<=3))return false; if(ds==='4-7'&&!(d>=4&&d<=7))return false;
+        if(ds==='7+'&&!(d>7))return false; if(ds==='14+'&&!(d>14))return false; }
+      if(q){ var hay=(tx(o.customer)+' '+tx(o.order)+' '+tx(o.model)+' '+tx(o.vin)).toLowerCase(); if(hay.indexOf(q)<0) return false; }
+      return true;
+    });
+    kpis(); table();
+  }
+  function kpis(){
+    var total=view.length;
+    var over7=view.filter(function(o){return o.__days>7;}).length;
+    var over14=view.filter(function(o){return o.__days>14;}).length;
+    var custs={}, models={}, reps={};
+    view.forEach(function(o){ if(tx(o.customer))custs[tx(o.customer)]=1; if(tx(o.model))models[tx(o.model)]=1; var r=tx(o.rep)||'—'; reps[r]=(reps[r]||0)+1; });
+    var topRep='—',topN=0; Object.keys(reps).forEach(function(r){ if(reps[r]>topN){topN=reps[r];topRep=r;} });
+    var cards=[
+      {l:'סך הזמנות במלאי',v:total,c:'#5b8def'},
+      {l:'מעל 7 ימים',v:over7,c:'#ef4444'},
+      {l:'מעל 14 ימים',v:over14,c:'#b91c1c'},
+      {l:'לקוחות ייחודיים',v:Object.keys(custs).length,c:'#2dd4bf'},
+      {l:'דגמים',v:Object.keys(models).length,c:'#8b7cf6'},
+      {l:'מת״ל עם הכי הרבה',v:topRep+(topN?(' ('+topN+')'):''),c:'#f5a524',sm:true}
+    ];
+    g("so-kpis").innerHTML=cards.map(function(k){ return '<div class="so-kpi" style="--c:'+k.c+'"><div class="so-kpi-v'+(k.sm?' sm':'')+'">'+esc(String(k.v))+'</div><div class="so-kpi-l">'+k.l+'</div></div>'; }).join('');
+  }
+  function badge(a){ var cls=a.indexOf('דחוף')>=0?'so-b-red':a.indexOf('קשר')>=0?'so-b-orange':'so-b-green'; return '<span class="so-badge '+cls+'">'+a+'</span>'; }
+  function table(){
+    g("so-thead").innerHTML=COLS.map(function(c){return '<th>'+c.t+'</th>';}).join('');
+    if(!view.length){ g("so-tbody").innerHTML='<tr><td class="so-empty" colspan="'+COLS.length+'">אין הזמנות התואמות לסינון</td></tr>'; g("so-count").textContent=''; return; }
+    var shown=view.slice(0,CAP);
+    g("so-count").textContent='מציג '+shown.length+' מתוך '+view.length+(view.length>CAP?' (צמצם עם הסינון לראות עוד)':'');
+    g("so-tbody").innerHTML=shown.map(function(o){
+      var tds=COLS.map(function(col){
+        if(col.k==='__days') return '<td class="so-days"><span class="so-dot so-'+o.__urg+'"></span>'+o.__days+'</td>';
+        if(col.k==='__action') return '<td>'+badge(o.__action)+'</td>';
+        return '<td>'+esc(tx(o[col.k]))+'</td>';
+      }).join('');
+      return '<tr class="so-row so-urg-'+o.__urg+'">'+tds+'</tr>';
+    }).join('');
+  }
+  function wire(){
+    ['so-q','so-rep','so-model','so-loc','so-days'].forEach(function(id){ var x=g(id); if(x){ x.addEventListener('input',apply); x.addEventListener('change',apply); } });
+    var clr=g("so-clear"); if(clr) clr.onclick=function(){ ['so-q','so-rep','so-model','so-loc','so-days'].forEach(function(id){ if(g(id)) g(id).value=''; }); apply(); };
+  }
+  function load(){
+    soErr(''); g("so-kpis").innerHTML='<div class="so-loading">טוען נתונים…</div>';
+    jsonp(APPS_SCRIPT_URL,{action:'stockOrders'}).then(function(resp){
+      if(resp && resp.ok===false) throw new Error(resp.error||'שגיאה מהשרת');
+      var data = resp && (resp.data || (Array.isArray(resp)?resp:null));
+      if(!data) throw new Error('מבנה תגובה לא צפוי');
+      raw=proc(data); loaded=true;
+      fill(g("so-rep"),uniq(raw.map(function(o){return tx(o.rep);})),'כל המת״לים');
+      fill(g("so-model"),uniq(raw.map(function(o){return tx(o.model);})),'כל הדגמים');
+      fill(g("so-loc"),uniq(raw.map(function(o){return tx(o.location);})),'כל המיקומים');
+      apply();
+    }).catch(function(err){ g("so-kpis").innerHTML=''; soErr('לא ניתן לטעון את נתוני ההזמנות: '+err.message); });
+  }
+  wire();
+  return { show:function(){ if(!loaded) load(); }, reload:load };
+})();
+
+/* ====== initial paint: ALWAYS from Apps Script (no demo, no previous file) ====== */
+loadData();
 </script>
 </body>
 </html>
