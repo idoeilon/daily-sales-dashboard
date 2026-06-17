@@ -3,18 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>לוח בקרה צוות שטח מכירה ישירה - יוני 2026</title>
+<title>לוח מכירות ואיכות — יוני 2026</title>
 <style>
   :root{
-    --bg:#0b0e14; --bg2:#0e1320; --surface:#141a28; --surface2:#1a2233;
-    --line:#262f43; --line2:#313c54;
-    --text:#eaf0fb; --muted:#8b97ad; --faint:#5d6880;
-    --teal:#2dd4bf; --teal-dim:#155e57;
-    --amber:#f5a524; --amber-dim:#5e4413;
-    --violet:#8b7cf6; --violet-dim:#3a3270;
-    --gold:#d8b45a; --rose:#f87171;
+    --bg:#1a2030; --bg2:#212838; --surface:#28324a; --surface2:#33405c;
+    --line:#3a4763; --line2:#48587a;
+    --text:#f3f7ff; --muted:#aab7d0; --faint:#7e8cab;
+    --teal:#41e3cf; --teal-dim:#1d8478;
+    --amber:#ffbb45; --amber-dim:#7c5d1f;
+    --violet:#a394ff; --violet-dim:#4a4188;
+    --gold:#e8c66f; --rose:#ff8e8e;
     --r:16px; --r-sm:11px;
-    --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 18px 40px -24px rgba(0,0,0,.9);
+    --shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -26px rgba(0,0,0,.7);
     --font:"Heebo","Assistant","Segoe UI",system-ui,-apple-system,"Arial Hebrew",Arial,sans-serif;
   }
   *{box-sizing:border-box}
@@ -214,6 +214,31 @@
   .so-kpi-v.sm{font-size:15px}
   .so-kpi-l{color:var(--muted);font-size:11.5px;font-weight:600;margin-top:6px}
   .so-filters{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:13px}
+  /* multi-select dropdown (like Excel filters) */
+  .so-ms{position:relative}
+  .so-ms-btn{height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg2);
+    color:var(--text);font:inherit;font-size:13px;min-width:155px;cursor:pointer;display:flex;align-items:center;
+    justify-content:space-between;gap:8px}
+  .so-ms-btn:hover{border-color:var(--teal)}
+  .so-ms.open .so-ms-btn{border-color:var(--teal);outline:2px solid rgba(65,227,207,.25);outline-offset:0}
+  .so-ms-txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px}
+  .so-ms-btn .cnt{background:var(--teal);color:#04121a;border-radius:999px;font-size:11px;font-weight:800;padding:1px 7px;line-height:1.5}
+  .so-ms-btn .arr{color:var(--muted);font-size:10px}
+  .so-ms-panel{position:absolute;top:calc(100% + 6px);right:0;z-index:40;min-width:235px;max-width:320px;
+    background:var(--surface);border:1px solid var(--line2);border-radius:12px;
+    box-shadow:0 16px 44px rgba(0,0,0,.40);padding:10px;display:none}
+  .so-ms.open .so-ms-panel{display:block}
+  .so-ms-search{width:100%;height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line2);
+    background:var(--bg2);color:var(--text);font:inherit;font-size:12.5px;margin-bottom:8px}
+  .so-ms-search:focus{outline:2px solid var(--teal);outline-offset:0}
+  .so-ms-tools{display:flex;justify-content:space-between;margin-bottom:6px}
+  .so-ms-tools button{background:none;border:none;color:var(--teal);font:inherit;font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px}
+  .so-ms-tools button:hover{text-decoration:underline}
+  .so-ms-list{max-height:240px;overflow:auto;display:flex;flex-direction:column;gap:1px}
+  .so-ms-opt{display:flex;align-items:center;gap:9px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text)}
+  .so-ms-opt:hover{background:var(--surface2)}
+  .so-ms-opt input{accent-color:var(--teal);width:15px;height:15px;cursor:pointer;flex:none}
+  .so-ms-empty{color:var(--muted);font-size:12px;padding:8px}
   .so-input{height:38px;padding:0 12px;border-radius:10px;border:1px solid var(--line2);background:var(--bg2);
     color:var(--text);font:inherit;font-size:13px;min-width:140px}
   .so-input:focus{outline:2px solid var(--teal);outline-offset:1px}
@@ -224,8 +249,8 @@
   .so-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
   .so-table th{position:sticky;top:0;background:var(--surface2);color:#cdd6e6;font-weight:700;text-align:right;
     padding:10px 11px;border-bottom:1px solid var(--line2);z-index:1}
-  .so-table td{padding:9px 11px;border-bottom:1px solid #1f2738;color:#dbe3f0}
-  .so-row:hover td{background:#171e2d}
+  .so-table td{padding:9px 11px;border-bottom:1px solid var(--line);color:var(--text)}
+  .so-row:hover td{background:var(--surface2)}
   .so-row td:first-child{box-shadow:inset 3px 0 0 transparent}
   .so-urg-green  td:first-child{box-shadow:inset 3px 0 0 #22c55e}
   .so-urg-orange td:first-child{box-shadow:inset 3px 0 0 #f59e0b}
@@ -359,9 +384,9 @@
     <div id="so-kpis" class="so-kpis"></div>
     <div class="so-filters">
       <input  id="so-q"     class="so-input" type="search" placeholder="חיפוש: לקוח / מס׳ הזמנה / דגם / שלדה">
-      <select id="so-rep"   class="so-input"></select>
-      <select id="so-model" class="so-input"></select>
-      <select id="so-loc"   class="so-input"></select>
+      <div class="so-ms" data-field="rep"   data-all="כל המת״לים"></div>
+      <div class="so-ms" data-field="model" data-all="כל הדגמים"></div>
+      <div class="so-ms" data-field="loc"   data-all="כל המיקומים"></div>
       <select id="so-days"  class="so-input">
         <option value="">כל הימים</option>
         <option value="0-3">עד 3 ימים</option>
@@ -624,7 +649,7 @@ function readTargetsAndQuality(rows, reps){
    טעינת Excel מקומית = אופציונלית לבדיקה בלבד (זמני עד רענון הדף). */
 
 /* >>> הגדר כאן את כתובת ה-Web App של ה-Apps Script שלך <<< */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7b68OcpxzslfgFGSh0e9koGiZ-pnixEnYsjjgrHD7n6LouQp-3dNwVLKvnPcjrjZl3w/exec";
+const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
 
 const HEB_MONTHS=["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
 function monthLabel(){ const d=new Date(); return HEB_MONTHS[d.getMonth()]+" "+d.getFullYear(); }
@@ -751,6 +776,9 @@ document.querySelectorAll(".tab").forEach(t=>{ t.onclick=()=>showScreen(t.datase
 /* ====== STOCK ORDERS screen (data from Apps Script action=stockOrders) ====== */
 var StockOrders=(function(){
   var raw=[], view=[], loaded=false, CAP=400;
+  var sel={rep:new Set(),model:new Set(),loc:new Set()};   // selected values per filter
+  var MSITEMS={rep:[],model:[],loc:[]};                    // all options per filter
+  var FACC={rep:function(o){return tx(o.rep);},model:function(o){return tx(o.model);},loc:function(o){return tx(o.location);}};
   var COLS=[
     {k:'rep',t:'מת"ל'},{k:'customer',t:'לקוח'},{k:'order',t:'מס׳ הזמנה'},{k:'model',t:'דגם'},
     {k:'trim',t:'גימור'},{k:'color',t:'צבע'},{k:'vin',t:'מס׳ שלדה'},{k:'orderDate',t:'תאריך הזמנה'},
@@ -764,15 +792,62 @@ var StockOrders=(function(){
   function tx(v){ return v==null?'':String(v).trim(); }
   function proc(list){ return (list||[]).map(function(o){ var c={}; for(var k in o) c[k]=o[k]; c.__days=days(o.orderDate); c.__urg=urg(c.__days); c.__action=actOf(c.__days); return c; }); }
   function uniq(a){ return a.filter(function(v,i){return v!==''&&a.indexOf(v)===i;}).sort(function(x,y){return x.localeCompare(y,'he');}); }
-  function fill(sel,items,all){ if(!sel)return; sel.innerHTML='<option value="">'+all+'</option>'+items.map(function(v){return '<option>'+esc(v)+'</option>';}).join(''); }
+  function closeAllMS(){ var els=document.querySelectorAll('.so-ms.open'); for(var i=0;i<els.length;i++) els[i].classList.remove('open'); }
+  function msLabel(field){
+    var c=document.querySelector('.so-ms[data-field="'+field+'"]'); if(!c)return;
+    var s=sel[field], all=c.getAttribute('data-all');
+    var txtEl=c.querySelector('.so-ms-txt'), cntEl=c.querySelector('.cnt');
+    if(!txtEl)return;
+    var arr=[]; s.forEach(function(v){arr.push(v);});
+    txtEl.textContent = s.size===0 ? all : (s.size===1 ? arr[0] : all);
+    if(s.size>0){ cntEl.style.display=''; cntEl.textContent=s.size; } else { cntEl.style.display='none'; }
+  }
+  function buildMS(field, items){
+    var c=document.querySelector('.so-ms[data-field="'+field+'"]'); if(!c)return;
+    var all=c.getAttribute('data-all');
+    c.innerHTML =
+      '<button type="button" class="so-ms-btn"><span class="so-ms-txt">'+esc(all)+'</span>'+
+        '<span style="display:flex;align-items:center;gap:6px"><span class="cnt" style="display:none"></span><span class="arr">\u25be</span></span></button>'+
+      '<div class="so-ms-panel">'+
+        '<input type="text" class="so-ms-search" placeholder="\u05d7\u05d9\u05e4\u05d5\u05e9\u2026">'+
+        '<div class="so-ms-tools"><button type="button" data-act="all">\u05d1\u05d7\u05e8 \u05d4\u05db\u05dc</button><button type="button" data-act="none">\u05e0\u05e7\u05d4</button></div>'+
+        '<div class="so-ms-list"></div></div>';
+    var listEl=c.querySelector('.so-ms-list'), searchEl=c.querySelector('.so-ms-search');
+    function renderList(f){
+      f=(f||'').toLowerCase();
+      var shown=items.filter(function(v){ return !f || v.toLowerCase().indexOf(f)>=0; });
+      if(!shown.length){ listEl.innerHTML='<div class="so-ms-empty">\u05d0\u05d9\u05df \u05ea\u05d5\u05e6\u05d0\u05d5\u05ea</div>'; return; }
+      listEl.innerHTML=shown.map(function(v){
+        return '<label class="so-ms-opt"><input type="checkbox" value="'+esc(v)+'"'+(sel[field].has(v)?' checked':'')+'>'+esc(v)+'</label>';
+      }).join('');
+    }
+    renderList('');
+    c.querySelector('.so-ms-btn').addEventListener('click',function(e){ e.stopPropagation(); var wasOpen=c.classList.contains('open'); closeAllMS(); if(!wasOpen){ c.classList.add('open'); searchEl.focus(); } });
+    c.querySelector('.so-ms-panel').addEventListener('click',function(e){ e.stopPropagation(); });
+    searchEl.addEventListener('input',function(e){ renderList(e.target.value); });
+    listEl.addEventListener('change',function(e){
+      if(e.target&&e.target.type==='checkbox'){ var v=e.target.value;
+        if(e.target.checked) sel[field].add(v); else sel[field].delete(v);
+        msLabel(field); apply(); }
+    });
+    var tools=c.querySelectorAll('.so-ms-tools button');
+    for(var i=0;i<tools.length;i++){ (function(b){
+      b.addEventListener('click',function(e){ e.stopPropagation();
+        if(b.getAttribute('data-act')==='all'){ items.forEach(function(v){sel[field].add(v);}); }
+        else { sel[field].clear(); }
+        renderList(searchEl.value); msLabel(field); apply();
+      });
+    })(tools[i]); }
+    msLabel(field);
+  }
   function soErr(m){ var e=g("so-error"); if(!m){ e.className="notice"; return; } e.innerHTML='<div><b>'+esc(m)+'</b></div>'; e.className="notice show err"; }
 
   function apply(){
-    var q=tx(g("so-q").value).toLowerCase(), rep=g("so-rep").value, model=g("so-model").value, loc=g("so-loc").value, ds=g("so-days").value;
+    var q=tx(g("so-q").value).toLowerCase(), ds=g("so-days").value;
     view=raw.filter(function(o){
-      if(rep && tx(o.rep)!==rep) return false;
-      if(model && tx(o.model)!==model) return false;
-      if(loc && tx(o.location)!==loc) return false;
+      if(sel.rep.size   && !sel.rep.has(tx(o.rep)))        return false;
+      if(sel.model.size && !sel.model.has(tx(o.model)))    return false;
+      if(sel.loc.size   && !sel.loc.has(tx(o.location)))   return false;
       if(ds){ var d=o.__days;
         if(ds==='0-3'&&!(d<=3))return false; if(ds==='4-7'&&!(d>=4&&d<=7))return false;
         if(ds==='7+'&&!(d>7))return false; if(ds==='14+'&&!(d>14))return false; }
@@ -814,8 +889,14 @@ var StockOrders=(function(){
     }).join('');
   }
   function wire(){
-    ['so-q','so-rep','so-model','so-loc','so-days'].forEach(function(id){ var x=g(id); if(x){ x.addEventListener('input',apply); x.addEventListener('change',apply); } });
-    var clr=g("so-clear"); if(clr) clr.onclick=function(){ ['so-q','so-rep','so-model','so-loc','so-days'].forEach(function(id){ if(g(id)) g(id).value=''; }); apply(); };
+    ['so-q','so-days'].forEach(function(id){ var x=g(id); if(x){ x.addEventListener('input',apply); x.addEventListener('change',apply); } });
+    var clr=g("so-clear"); if(clr) clr.onclick=function(){
+      sel.rep.clear(); sel.model.clear(); sel.loc.clear();
+      if(g("so-q")) g("so-q").value=''; if(g("so-days")) g("so-days").value='';
+      buildMS('rep',MSITEMS.rep); buildMS('model',MSITEMS.model); buildMS('loc',MSITEMS.loc);
+      apply();
+    };
+    document.addEventListener('click',closeAllMS);
   }
   function load(){
     soErr(''); g("so-kpis").innerHTML='<div class="so-loading">טוען נתונים…</div>';
@@ -824,9 +905,11 @@ var StockOrders=(function(){
       var data = resp && (resp.data || (Array.isArray(resp)?resp:null));
       if(!data) throw new Error('מבנה תגובה לא צפוי');
       raw=proc(data); loaded=true;
-      fill(g("so-rep"),uniq(raw.map(function(o){return tx(o.rep);})),'כל המת״לים');
-      fill(g("so-model"),uniq(raw.map(function(o){return tx(o.model);})),'כל הדגמים');
-      fill(g("so-loc"),uniq(raw.map(function(o){return tx(o.location);})),'כל המיקומים');
+      MSITEMS.rep   = uniq(raw.map(function(o){return tx(o.rep);}));
+      MSITEMS.model = uniq(raw.map(function(o){return tx(o.model);}));
+      MSITEMS.loc   = uniq(raw.map(function(o){return tx(o.location);}));
+      sel.rep.clear(); sel.model.clear(); sel.loc.clear();
+      buildMS('rep',MSITEMS.rep); buildMS('model',MSITEMS.model); buildMS('loc',MSITEMS.loc);
       apply();
     }).catch(function(err){ g("so-kpis").innerHTML=''; soErr('לא ניתן לטעון את נתוני ההזמנות: '+err.message); });
   }
