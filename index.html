@@ -245,11 +245,17 @@
   .so-clear{cursor:pointer;min-width:78px;color:var(--muted)}
   .so-clear:hover{color:var(--text);border-color:var(--rose)}
   .so-count{color:var(--faint);font-size:12px;margin-bottom:8px}
-  .so-tablewrap{overflow:auto;max-height:62vh;border:1px solid var(--line);border-radius:14px}
-  .so-table{width:100%;border-collapse:collapse;font-size:12.5px;white-space:nowrap}
-  .so-table th{position:sticky;top:0;background:var(--surface2);color:#cdd6e6;font-weight:700;text-align:right;
-    padding:10px 11px;border-bottom:1px solid var(--line2);z-index:1}
-  .so-table td{padding:9px 11px;border-bottom:1px solid var(--line);color:var(--text)}
+  .so-export{flex:none}
+  .so-export:hover{border-color:var(--teal);color:var(--teal);background:var(--surface2)}
+  .so-tablewrap{overflow-y:auto;overflow-x:hidden;max-height:64vh;border:1px solid var(--line);border-radius:14px}
+  .so-table{width:100%;border-collapse:collapse;font-size:11.5px;table-layout:fixed}
+  .so-table th{position:sticky;top:0;background:var(--surface2);color:#dfe7f4;font-weight:700;text-align:right;
+    padding:8px 7px;border-bottom:1px solid var(--line2);z-index:1;cursor:pointer;user-select:none;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .so-table th:hover,.so-table th.active{color:var(--teal)}
+  .so-table th .ar{font-size:9px;opacity:.9}
+  .so-table td{padding:7px 7px;border-bottom:1px solid var(--line);color:var(--text);
+    word-break:break-word;overflow-wrap:anywhere;vertical-align:top}
   .so-row:hover td{background:var(--surface2)}
   .so-row td:first-child{box-shadow:inset 3px 0 0 transparent}
   .so-urg-green  td:first-child{box-shadow:inset 3px 0 0 #22c55e}
@@ -377,8 +383,9 @@
     <div class="so-head">
       <div>
         <h2>הזמנות במלאי — גבייה ומסירה</h2>
-        <p>הזמנות שהרכב שלהן כבר נמצא במלאי (סטטוס "במלאי") — לקידום גבייה ומסירה</p>
+        <p>הזמנות שהרכב שלהן כבר נמצא במלאי (סטטוס "במלאי") — לקידום גבייה ומסירה. לחיצה על כותרת עמודה ממיינת.</p>
       </div>
+      <button id="so-export" class="btn so-export">⬇ ייצוא לאקסל</button>
     </div>
     <div id="so-error" class="notice" style="margin:0 0 14px"></div>
     <div id="so-kpis" class="so-kpis"></div>
@@ -649,7 +656,7 @@ function readTargetsAndQuality(rows, reps){
    טעינת Excel מקומית = אופציונלית לבדיקה בלבד (זמני עד רענון הדף). */
 
 /* >>> הגדר כאן את כתובת ה-Web App של ה-Apps Script שלך <<< */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyFX7FkkBjWM9QD_m5lVx5fzRYSjRibY8z35YfnazYdlw4eSyRvtdzwBQZUxPIPPUy28g/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQMzHfAVBU1xA4v6Nodp034WGwwi8BShgB4lzdyOxnodAgqHqmUP2x7h-zXU1w9APleQ/exec";
 
 const HEB_MONTHS=["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
 function monthLabel(){ const d=new Date(); return HEB_MONTHS[d.getMonth()]+" "+d.getFullYear(); }
@@ -782,7 +789,7 @@ var StockOrders=(function(){
   var COLS=[
     {k:'rep',t:'מת"ל'},{k:'customer',t:'לקוח'},{k:'order',t:'מס׳ הזמנה'},{k:'model',t:'דגם'},
     {k:'trim',t:'גימור'},{k:'color',t:'צבע'},{k:'vin',t:'מס׳ שלדה'},{k:'orderDate',t:'תאריך הזמנה'},
-    {k:'__days',t:'ימים מההזמנה'},{k:'status',t:'סטטוס'},{k:'location',t:'מיקום רכב'},{k:'plate',t:'לוחית'},{k:'__action',t:'פעולה'}
+    {k:'__days',t:'ימים מההזמנה'},{k:'location',t:'מיקום רכב'},{k:'plate',t:'לוחית'},{k:'__action',t:'פעולה'}
   ];
   function g(id){ return document.getElementById(id); }
   function days(d){ if(!d) return 0; var t=new Date(d); if(isNaN(t.getTime())) return 0; return Math.max(0,Math.floor((Date.now()-t.getTime())/86400000)); }
@@ -874,10 +881,35 @@ var StockOrders=(function(){
     g("so-kpis").innerHTML=cards.map(function(k){ return '<div class="so-kpi" style="--c:'+k.c+'"><div class="so-kpi-v'+(k.sm?' sm':'')+'">'+esc(String(k.v))+'</div><div class="so-kpi-l">'+k.l+'</div></div>'; }).join('');
   }
   function badge(a){ var cls=a.indexOf('דחוף')>=0?'so-b-red':a.indexOf('קשר')>=0?'so-b-orange':'so-b-green'; return '<span class="so-badge '+cls+'">'+a+'</span>'; }
+  var sortKey=null, sortDir=-1;   // -1 = high→low (יורד), 1 = low→high (עולה)
+  function cmp(a,b){
+    var k=sortKey;
+    if(k==='__days'||k==='__action') return (a.__days-b.__days)*sortDir;
+    if(k==='orderDate'){ var x=tx(a.orderDate), y=tx(b.orderDate); return (x<y?-1:x>y?1:0)*sortDir; } // ISO yyyy-mm-dd
+    return tx(a[k]).localeCompare(tx(b[k]),'he')*sortDir;
+  }
+  function exportXlsx(){
+    var rows=view.slice(); if(sortKey) rows.sort(cmp);
+    ensureXLSX().then(function(){
+      var aoa=[ COLS.map(function(c){return c.t;}) ];
+      rows.forEach(function(o){ aoa.push(COLS.map(function(c){
+        if(c.k==='__days') return o.__days;
+        if(c.k==='__action') return o.__action;
+        return tx(o[c.k]);
+      })); });
+      var ws=XLSX.utils.aoa_to_sheet(aoa), wb=XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "הזמנות במלאי");
+      XLSX.writeFile(wb, "הזמנות_במלאי_"+new Date().toISOString().slice(0,10)+".xlsx");
+    }).catch(function(err){ soErr('הייצוא נכשל: '+err.message); });
+  }
   function table(){
-    g("so-thead").innerHTML=COLS.map(function(c){return '<th>'+c.t+'</th>';}).join('');
+    g("so-thead").innerHTML=COLS.map(function(c){
+      var act=(sortKey===c.k); var ar=act?('<span class="ar">'+(sortDir<0?' ▼':' ▲')+'</span>'):'';
+      return '<th data-key="'+c.k+'"'+(act?' class="active"':'')+'>'+c.t+ar+'</th>';
+    }).join('');
     if(!view.length){ g("so-tbody").innerHTML='<tr><td class="so-empty" colspan="'+COLS.length+'">אין הזמנות התואמות לסינון</td></tr>'; g("so-count").textContent=''; return; }
-    var shown=view.slice(0,CAP);
+    var rows=view.slice(); if(sortKey) rows.sort(cmp);
+    var shown=rows.slice(0,CAP);
     g("so-count").textContent='מציג '+shown.length+' מתוך '+view.length+(view.length>CAP?' (צמצם עם הסינון לראות עוד)':'');
     g("so-tbody").innerHTML=shown.map(function(o){
       var tds=COLS.map(function(col){
@@ -896,6 +928,12 @@ var StockOrders=(function(){
       buildMS('rep',MSITEMS.rep); buildMS('model',MSITEMS.model); buildMS('loc',MSITEMS.loc);
       apply();
     };
+    var th=g("so-thead"); if(th) th.addEventListener('click',function(e){
+      var cell=e.target.closest('th'); if(!cell) return; var k=cell.getAttribute('data-key'); if(!k) return;
+      if(sortKey===k){ sortDir=-sortDir; } else { sortKey=k; sortDir=-1; }  // עמודה חדשה -> מהגבוה לנמוך
+      table();
+    });
+    var ex=g("so-export"); if(ex) ex.onclick=exportXlsx;
     document.addEventListener('click',closeAllMS);
   }
   function load(){
