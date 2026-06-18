@@ -85,7 +85,7 @@
   .hs .l{color:var(--muted);font-size:11.5px;font-weight:600;margin-top:2px}
 
   /* ---- kpi strip ---- */
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
+  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
   .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 15px;position:relative;overflow:hidden}
   .kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent,var(--teal))}
   .kpi .v{font-size:27px;font-weight:800;line-height:1}
@@ -438,7 +438,8 @@ const STATUS = {
   invoices:{label:"חשבוניות", color:"#2dd4bf"},
   deliveries:{label:"מסירות", color:"#5b8def"},
   inProcess:{label:"בתהליך", color:"#8b7cf6"},
-  open:{label:"תיק פתוח", color:"#f5a524"}
+  open:{label:"תיק פתוח", color:"#f5a524"},
+  newCustomers:{label:"לקוחות חדשים", color:"#41e3cf"}
 };
 let CURRENT = null;
 const BUILD = "5 · 11.6.2026 · זיהוי-לפי-כותרות";
@@ -453,7 +454,7 @@ function openPopup(key){
   const total = groups.reduce((s,g)=>s + g.items.reduce((a,x)=>a+x.v,0), 0);
   const body = groups.map(g=>{
     const sub = g.items.reduce((a,x)=>a+x.v,0);
-    const rows = g.items.map(x=>`<div class="prow"><span class="pc-name">${esc(x.c)}</span><span class="pc-v num">${nf.format(x.v)}</span></div>`).join("");
+    const rows = g.items.map(x=>`<div class="prow"><span class="pc-name">${esc(x.c)}</span>${key==="newCustomers"?"":`<span class="pc-v num">${nf.format(x.v)}</span>`}</div>`).join("");
     return `<div class="pgroup"><div class="pgh"><span>${esc(g.rep)}</span><span class="num">${nf.format(sub)}</span></div>${rows}</div>`;
   }).join("") || `<div class="pempty">אין לקוחות בסטטוס זה</div>`;
   const t = el("modalTitle");
@@ -518,6 +519,7 @@ function render(d){
     {l:"מסירות", v:c.t.deliveries, s:"לחץ לפירוט לקוחות", color:"#5b8def", st:"deliveries"},
     {l:"בתהליך (רישוי)", v:c.t.inProcess, s:"לחץ לפירוט לקוחות", color:"var(--violet)", st:"inProcess"},
     {l:"תיק פתוח", v:c.t.open, s:"לחץ לפירוט לקוחות", color:"var(--amber)", st:"open"},
+    {l:"לקוחות חדשים", v:d.reps.reduce((s,r)=>s+((r.detail&&r.detail.newCustomers)?r.detail.newCustomers.length:0),0), s:"לחץ לשמות הלקוחות", color:"#41e3cf", st:"newCustomers"},
     {l:"יעד כולל", v:c.t.target, s:"יעד חשבוניות לחודש", color:"var(--muted)", st:""}
   ];
   el("kpis").innerHTML = kpis.map(k=>`<div class="kpi${k.st?' clickable':''}" style="--accent:${k.color}"${k.st?` data-status="${k.st}" role="button" tabindex="0"`:''}>
@@ -612,17 +614,24 @@ function aggregateSales(rows){
     const openIdx   = findIdx(row, t=>t.indexOf("תיק פתוח")>=0);
     const invIdx    = findIdx(row, t=>t.indexOf("חשבונ")>=0);
     const delIdx    = findIdx(row, t=>t.indexOf("מסיר")>=0);
+    const newIdx    = findIdx(row, t=>t==="חדש" || t.indexOf("חדש")>=0);
     // salesperson name sits in the row above the header (merged anchor), same column as leftCust
     let name="";
     for(let u=hr-1; u>=Math.max(0,hr-3) && !name; u--){ const c=txt(rows[u]?.[leftCust]); if(c && c!==LABEL && c!==TOTAL) name=c; }
     if(!name) name = "נציג "+(k+1);
     const end = k+1<headerRows.length ? headerRows[k+1]-1 : rows.length;
-    const det={invoices:[],inProcess:[],open:[],deliveries:[]};
+    const det={invoices:[],inProcess:[],open:[],deliveries:[],newCustomers:[]};
     const add=(arr,cellVal,name)=>{ const v=n(cellVal); if(v) arr.push({c:name,v}); };
     for(let r=hr+1;r<end;r++){
       const cL=txt(rows[r]?.[leftCust]), cR=txt(rows[r]?.[rightCust]);
       if(cL && cL!==LABEL && cL!==TOTAL){ add(det.inProcess, rows[r][inProcIdx], cL); add(det.open, rows[r][openIdx], cL); }
       if(cR && cR!==LABEL && cR!==TOTAL){ add(det.invoices, rows[r][invIdx], cR); add(det.deliveries, rows[r][delIdx], cR); }
+      if(newIdx>=0){ const mv=txt(rows[r]?.[newIdx]);
+        if(mv && mv!=="0" && mv!=="0.0"){
+          const nm=(cR && cR!==LABEL && cR!==TOTAL)?cR:(/[^\d.,\s\-]/.test(mv)?mv:"");
+          if(nm) det.newCustomers.push({c:nm, v:1});
+        }
+      }
     }
     const sum=a=>a.reduce((s,x)=>s+x.v,0);
     reps.push({name, invoices:sum(det.invoices), inProcess:sum(det.inProcess), open:sum(det.open), deliveries:sum(det.deliveries), target:0, detail:det});
