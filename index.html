@@ -85,7 +85,7 @@
   .hs .l{color:var(--muted);font-size:11.5px;font-weight:600;margin-top:2px}
 
   /* ---- kpi strip ---- */
-  .kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:18px}
+  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px}
   .kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 15px;position:relative;overflow:hidden}
   .kpi::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent,var(--teal))}
   .kpi .v{font-size:27px;font-weight:800;line-height:1}
@@ -129,6 +129,9 @@
   .qcard{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:15px 16px}
   .qcard .qn{font-weight:700;font-size:14px;display:flex;justify-content:space-between;align-items:center}
   .qcard .qn .frac{font-weight:800}
+  .qcard .qn .frac.over{color:#22e0c6}
+  .qcard.clickable{cursor:pointer;transition:border-color .15s,transform .12s,background .15s}
+  .qcard.clickable:hover{border-color:var(--teal);background:var(--surface2);transform:translateY(-2px)}
   .dots{display:flex;gap:7px;margin-top:12px}
   .dots .d{flex:1;height:9px;border-radius:5px;background:var(--surface2);border:1px solid var(--line2)}
   .dots .d.on{background:linear-gradient(90deg,#22e0c6,#6d8bff);border-color:transparent}
@@ -519,7 +522,6 @@ function render(d){
     {l:"מסירות", v:c.t.deliveries, s:"לחץ לפירוט לקוחות", color:"#5b8def", st:"deliveries"},
     {l:"בתהליך (רישוי)", v:c.t.inProcess, s:"לחץ לפירוט לקוחות", color:"var(--violet)", st:"inProcess"},
     {l:"תיק פתוח", v:c.t.open, s:"לחץ לפירוט לקוחות", color:"var(--amber)", st:"open"},
-    {l:"לקוחות חדשים", v:d.reps.reduce((s,r)=>s+((r.detail&&r.detail.newCustomers)?r.detail.newCustomers.length:0),0), s:"לחץ לשמות הלקוחות", color:"#41e3cf", st:"newCustomers"},
     {l:"יעד כולל", v:c.t.target, s:"יעד חשבוניות לחודש", color:"var(--muted)", st:""}
   ];
   el("kpis").innerHTML = kpis.map(k=>`<div class="kpi${k.st?' clickable':''}" style="--accent:${k.color}"${k.st?` data-status="${k.st}" role="button" tabindex="0"`:''}>
@@ -571,11 +573,20 @@ function render(d){
   /* quality */
   el("quality").innerHTML = d.quality.map(q=>{
     const dots = Array.from({length:q.target},(_,i)=>`<span class="d ${i<q.done?'on':''}"></span>`).join("");
-    const pct = q.target>0 ? q.done/q.target : 0;
-    return `<div class="qcard"><div class="qn"><span>${q.name}</span><span class="frac num">${nf.format(q.done)}/${nf.format(q.target)}</span></div>
+    const over = q.done>q.target;
+    const meta = q.done===0 ? "טרם נוספו לקוחות חדשים"
+               : over ? `${nf.format(q.done)} לקוחות חדשים · מעל היעד 🎉`
+               : q.done>=q.target ? `${nf.format(q.done)} לקוחות חדשים · יעד הושלם ✓`
+               : `${nf.format(q.done)} מתוך ${nf.format(q.target)} לקוחות חדשים`;
+    return `<div class="qcard clickable" data-newcust="1" role="button" tabindex="0"><div class="qn"><span>${q.name}</span><span class="frac num${over?' over':''}">${nf.format(q.done)}/${nf.format(q.target)}</span></div>
       <div class="dots">${dots}</div>
-      <div class="qmeta">${q.done===0?"טרם הושלמו משימות איכות החודש":pf(pct)+" הושלמו"}</div></div>`;
+      <div class="qmeta">${meta}</div></div>`;
   }).join("");
+  el("quality").querySelectorAll("[data-newcust]").forEach(card=>{
+    const open=()=>openPopup("newCustomers");
+    card.onclick=open;
+    card.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(); } };
+  });
   el("focus").innerHTML = d.focusModels.map(m=>`<span class="chip">${m}</span>`).join("");
 
   /* incentive */
@@ -614,7 +625,8 @@ function aggregateSales(rows){
     const openIdx   = findIdx(row, t=>t.indexOf("תיק פתוח")>=0);
     const invIdx    = findIdx(row, t=>t.indexOf("חשבונ")>=0);
     const delIdx    = findIdx(row, t=>t.indexOf("מסיר")>=0);
-    const newIdx    = findIdx(row, t=>t==="חדש" || t.indexOf("חדש")>=0);
+    let newIdx      = findIdx(row, t=>t==="חדש" || t.indexOf("חדש")>=0);
+    if(newIdx<0) newIdx = 12; // עמודה M — סימון "כן" ללקוח חדש
     // salesperson name sits in the row above the header (merged anchor), same column as leftCust
     let name="";
     for(let u=hr-1; u>=Math.max(0,hr-3) && !name; u--){ const c=txt(rows[u]?.[leftCust]); if(c && c!==LABEL && c!==TOTAL) name=c; }
@@ -627,9 +639,9 @@ function aggregateSales(rows){
       if(cL && cL!==LABEL && cL!==TOTAL){ add(det.inProcess, rows[r][inProcIdx], cL); add(det.open, rows[r][openIdx], cL); }
       if(cR && cR!==LABEL && cR!==TOTAL){ add(det.invoices, rows[r][invIdx], cR); add(det.deliveries, rows[r][delIdx], cR); }
       if(newIdx>=0){ const mv=txt(rows[r]?.[newIdx]);
-        if(mv && mv!=="0" && mv!=="0.0"){
-          const nm=(cR && cR!==LABEL && cR!==TOTAL)?cR:(/[^\d.,\s\-]/.test(mv)?mv:"");
-          if(nm) det.newCustomers.push({c:nm, v:1});
+        if(mv==="כן"){
+          const nm=(cR && cR!==LABEL && cR!==TOTAL)?cR:((cL && cL!==LABEL && cL!==TOTAL)?cL:"לקוח חדש");
+          det.newCustomers.push({c:nm, v:1});
         }
       }
     }
@@ -699,6 +711,10 @@ function buildData(getRows){
   const trows = getRows("יעדים");
   if(trows){
     quality = readTargetsAndQuality(trows, reps);
+    // "משימות איכות" מציג את מספר הלקוחות החדשים (סימון "כן" בעמודה M), יעד 4, עם ביצוע יתר
+    const ncount = r => (r.detail && r.detail.newCustomers) ? r.detail.newCustomers.length : 0;
+    if(!quality.length) quality = reps.map(r=>({name:r.name, target:4, done:0}));
+    quality.forEach(q=>{ const rep=reps.find(r=>r.name===q.name); if(rep) q.done = ncount(rep); if(!q.target) q.target=4; });
     let fRow=-1,fCol=-1;
     trows.forEach((row,i)=>{ if(fRow<0&&row) row.forEach((c,j)=>{ if(txt(c)==="דגמים במיקוד"){fRow=i;fCol=j;} }); });
     if(fRow>=0){ const fm=[]; for(let i=fRow+1;i<trows.length;i++){ const v=txt(trows[i] && trows[i][fCol]); if(v&&v!=="קונה") fm.push(v); else if(!v&&fm.length) break; } focus=fm; }
