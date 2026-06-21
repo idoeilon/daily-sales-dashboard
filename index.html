@@ -6,13 +6,13 @@
 <title>לוח מכירות ואיכות — יוני 2026</title>
 <style>
   :root{
-    --bg:#1a2030; --bg2:#212838; --surface:#28324a; --surface2:#33405c;
-    --line:#3a4763; --line2:#48587a;
-    --text:#f3f7ff; --muted:#aab7d0; --faint:#7e8cab;
-    --teal:#41e3cf; --teal-dim:#1d8478;
-    --amber:#ffbb45; --amber-dim:#7c5d1f;
-    --violet:#a394ff; --violet-dim:#4a4188;
-    --gold:#e8c66f; --rose:#ff8e8e;
+    --bg:#2b3554; --bg2:#33405f; --surface:#3d4d70; --surface2:#4a5b82;
+    --line:#56668d; --line2:#68799e;
+    --text:#f6f9ff; --muted:#c4cee2; --faint:#9ba7c4;
+    --teal:#45e6d2; --teal-dim:#1f8c80;
+    --amber:#ffc04f; --amber-dim:#866325;
+    --violet:#ab9dff; --violet-dim:#544a93;
+    --gold:#ecca74; --rose:#ff9696;
     --r:16px; --r-sm:11px;
     --shadow:0 1px 0 rgba(255,255,255,.04) inset, 0 18px 40px -26px rgba(0,0,0,.7);
     --font:"Heebo","Assistant","Segoe UI",system-ui,-apple-system,"Arial Hebrew",Arial,sans-serif;
@@ -115,7 +115,7 @@
   /* donut */
   .donut-wrap{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
   .donut{position:relative;width:170px;height:170px;flex:none}
-  .donut .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .donut .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
   .donut .center .v{font-size:30px;font-weight:800;line-height:1}
   .donut .center .l{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
   .dlegend{display:flex;flex-direction:column;gap:9px;font-size:13px}
@@ -278,6 +278,35 @@
   .so-loading{color:var(--muted);padding:18px}
   @media (max-width:1024px){ .so-kpis{grid-template-columns:repeat(3,1fr)} }
   @media (max-width:620px){ .so-kpis{grid-template-columns:repeat(2,1fr)} }
+
+  /* ---- stock orders: mobile layout (cards instead of a squished table) ---- */
+  @media (max-width:640px){
+    .so-filters{gap:8px}
+    #so-q{flex:1 1 100%;min-width:0}
+    .so-ms{flex:1 1 46%}
+    .so-ms-btn{min-width:0;width:100%}
+    .so-ms-panel{max-width:88vw}
+    #so-days{flex:1 1 46%;min-width:0}
+    .so-clear{flex:1 1 46%;min-width:0}
+    .so-export{width:100%;justify-content:center}
+    .so-tablewrap{max-height:none;overflow:visible;border:none;border-radius:0}
+    .so-table{font-size:13.5px;table-layout:auto}
+    .so-table thead{display:none}
+    .so-table tbody,.so-table tr,.so-table td{display:block;width:100%}
+    .so-table tr.so-row{border:1px solid var(--line2);border-radius:13px;background:var(--bg2);
+      margin-bottom:11px;padding:5px 13px;box-shadow:none}
+    .so-table td{display:flex;align-items:center;justify-content:space-between;gap:14px;
+      border:none;border-bottom:1px solid var(--line);padding:9px 0;text-align:left;
+      white-space:normal;overflow:visible;box-shadow:none!important}
+    .so-table td:last-child{border-bottom:none}
+    .so-table td::before{content:attr(data-label);color:var(--muted);font-weight:700;font-size:12px;flex:none}
+    .so-row:hover td{background:transparent}
+    .so-urg-red td,.so-urg-crit td{background:transparent}
+    .so-row.so-urg-green{border-right:4px solid #22c55e}
+    .so-row.so-urg-orange{border-right:4px solid #f59e0b}
+    .so-row.so-urg-red{border-right:4px solid #ef4444}
+    .so-row.so-urg-crit{border-right:4px solid #b91c1c}
+  }
 </style>
 </head>
 <body>
@@ -552,9 +581,9 @@ function render(d){
 
   /* donut: invoices / inProcess / open */
   const parts = [
-    {n:"חשבוניות", v:c.t.invoices, col:"#2dd4bf"},
-    {n:"בתהליך", v:c.t.inProcess, col:"#8b7cf6"},
-    {n:"תיק פתוח", v:c.t.open, col:"#f5a524"}
+    {n:"חשבוניות", v:c.t.invoices, col:"var(--teal)"},
+    {n:"בתהליך", v:c.t.inProcess, col:"var(--violet)"},
+    {n:"תיק פתוח", v:c.t.open, col:"var(--amber)"}
   ];
   const sum = parts.reduce((a,p)=>a+p.v,0) || 1;
   let off=0; const R=15.9155;
@@ -677,7 +706,7 @@ function readTargetsAndQuality(rows, reps){
    טעינת Excel מקומית = אופציונלית לבדיקה בלבד (זמני עד רענון הדף). */
 
 /* >>> הגדר כאן את כתובת ה-Web App של ה-Apps Script שלך <<< */
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbylbV3VxIQt204-1a3_gYnOwUw-BHUTO8Zti9LP8Ulq7vOmqMwWIuRMpHwhuvc2jUrD/exec";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQMzHfAVBU1xA4v6Nodp034WGwwi8BShgB4lzdyOxnodAgqHqmUP2x7h-zXU1w9APleQ/exec";
 
 const HEB_MONTHS=["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
 function monthLabel(){ const d=new Date(); return HEB_MONTHS[d.getMonth()]+" "+d.getFullYear(); }
@@ -938,9 +967,10 @@ var StockOrders=(function(){
     g("so-count").textContent='מציג '+shown.length+' מתוך '+view.length+(view.length>CAP?' (צמצם עם הסינון לראות עוד)':'');
     g("so-tbody").innerHTML=shown.map(function(o){
       var tds=COLS.map(function(col){
-        if(col.k==='__days') return '<td class="so-days"><span class="so-dot so-'+o.__urg+'"></span>'+o.__days+'</td>';
-        if(col.k==='__action') return '<td>'+badge(o.__action)+'</td>';
-        return '<td>'+esc(tx(o[col.k]))+'</td>';
+        var lbl=' data-label="'+esc(col.t)+'"';
+        if(col.k==='__days') return '<td'+lbl+' class="so-days"><span class="so-dot so-'+o.__urg+'"></span>'+o.__days+'</td>';
+        if(col.k==='__action') return '<td'+lbl+'>'+badge(o.__action)+'</td>';
+        return '<td'+lbl+'>'+esc(tx(o[col.k]))+'</td>';
       }).join('');
       return '<tr class="so-row so-urg-'+o.__urg+'">'+tds+'</tr>';
     }).join('');
