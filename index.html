@@ -279,6 +279,22 @@
   @media (max-width:1024px){ .so-kpis{grid-template-columns:repeat(3,1fr)} }
   @media (max-width:620px){ .so-kpis{grid-template-columns:repeat(2,1fr)} }
 
+  /* ---- brand split screen ---- */
+  .brands-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .brand-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .brand-head{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:16px;margin-bottom:8px}
+  .brand-tot{font-size:13px;color:var(--muted);font-weight:700}
+  .brand-body{display:flex;align-items:center;gap:20px;flex-wrap:wrap;justify-content:center}
+  .brand-pie{position:relative;flex:none}
+  .brand-pie .pie-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800}
+  .brand-legend{flex:1;min-width:150px;display:flex;flex-direction:column;gap:8px}
+  .bl-row{display:flex;align-items:center;gap:9px;font-size:13px}
+  .bl-dot{width:11px;height:11px;border-radius:3px;flex:none}
+  .bl-name{flex:1;color:var(--text);font-weight:600}
+  .bl-val{color:var(--muted);font-weight:700}
+  .brand-empty{color:var(--muted);text-align:center;padding:20px}
+  @media (max-width:640px){ .brands-grid{grid-template-columns:1fr} }
+
   /* ---- stock orders: mobile layout (cards instead of a squished table) ---- */
   @media (max-width:640px){
     .so-filters{gap:8px}
@@ -335,6 +351,7 @@
   <div class="tabs">
     <button class="tab active" data-screen="sales">מכירות ואיכות</button>
     <button class="tab" data-screen="stock">הזמנות במלאי</button>
+    <button class="tab" data-screen="brands">ספליט מותגים</button>
   </div>
 
   <div id="screen-sales">
@@ -402,8 +419,8 @@
   </section>
 
   <!-- incentive -->
-  <section class="card inc">
-    <h2><span class="h2dot"></span>אינסנטיב יוני<span class="tag">יעד "שמיים"</span></h2>
+  <section class="card inc" id="incentiveSection">
+    <h2><span class="h2dot"></span><span id="inctitleTxt">אינסנטיב</span><span class="tag">יעד "שמיים"</span></h2>
     <div id="incentive"></div>
     <div class="incnote" id="incnote"></div>
   </section>
@@ -442,6 +459,18 @@
         <tbody id="so-tbody"></tbody>
       </table>
     </div>
+  </div>
+
+  <div id="screen-brands" hidden>
+    <div class="so-head">
+      <div>
+        <h2>ספליט מותגים לפי מת״ל</h2>
+        <p>פילוח הרכבים שנמכרו לפי מותג, לכל מת״ל — בחר חודש לתצוגה</p>
+      </div>
+      <select id="brands-month" class="so-input"></select>
+    </div>
+    <div id="brands-error" class="notice" style="margin:0 0 14px"></div>
+    <div id="brands-grid" class="brands-grid"></div>
   </div>
 </div>
 
@@ -618,15 +647,23 @@ function render(d){
   });
   el("focus").innerHTML = d.focusModels.map(m=>`<span class="chip">${m}</span>`).join("");
 
-  /* incentive */
-  el("incentive").innerHTML = (d.incentive||[]).map(r=>{
-    const pct = r.potentialPct!=null ? r.potentialPct : (r.target>0?r.actual/r.target:0);
-    const col = pct>=1?"var(--teal)":pct>=.6?"var(--gold)":"var(--amber)";
-    return `<div class="incrow"><div><div class="nm">${r.name}</div>
-      <div class="det">ביצוע <b style="color:var(--text)">${nf.format(r.actual)}</b> · יעד ${nf.format(r.target)}</div></div>
-      <div class="pc" style="color:${col}">${pf(pct)}</div></div>`;
-  }).join("");
-  el("incnote").textContent = d.incentiveNote || "";
+  /* incentive — דינמי: מוצג רק אם יש תוכן החודש, אחרת נעלם */
+  const incData = d.incentive || [];
+  const incSection = el("incentiveSection");
+  if(!incData.length){
+    if(incSection) incSection.style.display = "none";
+  } else {
+    if(incSection) incSection.style.display = "";
+    const it = el("inctitleTxt"); if(it) it.textContent = "אינסנטיב " + ((d.month||"").split(" ")[0]);
+    el("incentive").innerHTML = incData.map(r=>{
+      const pct = r.potentialPct!=null ? r.potentialPct : (r.target>0?r.actual/r.target:0);
+      const col = pct>=1?"var(--teal)":pct>=.6?"var(--gold)":"var(--amber)";
+      return `<div class="incrow"><div><div class="nm">${r.name}</div>
+        <div class="det">ביצוע <b style="color:var(--text)">${nf.format(r.actual)}</b> · יעד ${nf.format(r.target)}</div></div>
+        <div class="pc" style="color:${col}">${pf(pct)}</div></div>`;
+    }).join("");
+    el("incnote").textContent = d.incentiveNote || "";
+  }
 
   /* footer */
   el("foot").innerHTML = `מקור הנתונים: גיליון <code>חשבונית-פתוח-בתהליך</code> · חישוב לפי שם נציג וכותרות (עמיד להזזת שורות/עמודות)<br>${window.__lastUpdate||("נתונים מוטמעים — נכון ל"+d.month)}<br><span style="color:#3f4a60">מהדורה ${BUILD}</span>`;
@@ -829,8 +866,10 @@ addEventListener("drop",e=>{e.preventDefault(); const f=e.dataTransfer.files[0];
 function showScreen(which){
   el("screen-sales").hidden = (which!=="sales");
   el("screen-stock").hidden = (which!=="stock");
+  el("screen-brands").hidden = (which!=="brands");
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.screen===which));
   if(which==="stock") StockOrders.show();
+  if(which==="brands") BrandSplit.show();
 }
 document.querySelectorAll(".tab").forEach(t=>{ t.onclick=()=>showScreen(t.dataset.screen); });
 
@@ -1008,6 +1047,57 @@ var StockOrders=(function(){
   }
   wire();
   return { show:function(){ if(!loaded) load(); }, reload:load };
+})();
+
+/* ====== BRAND SPLIT screen (data from Apps Script action=brandSplit) ====== */
+var BrandSplit=(function(){
+  var payload=null, loaded=false;
+  var BRANDS=[{k:'HYUNDAI',c:'#5b8def'},{k:'MITSUBISHI',c:'#ff8e8e'},{k:'JAECOO',c:'#45e6d2'},{k:'OMODA',c:'#ffc04f'},{k:'ORA',c:'#ab9dff'}];
+  function g(id){return document.getElementById(id);}
+  function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
+  function monthsWithData(){
+    return payload.months.filter(function(m){
+      return Object.keys(payload.data).some(function(rep){ var x=payload.data[rep]&&payload.data[rep][m];
+        return x && BRANDS.reduce(function(s,b){return s+num(x[b.k]);},0)>0; });
+    });
+  }
+  function buildMonths(){
+    var sel=g('brands-month'); var ms=monthsWithData(); if(!ms.length) ms=payload.months.slice();
+    sel.innerHTML=ms.map(function(m){return '<option>'+m+'</option>';}).join('');
+    sel.value=ms[ms.length-1];
+    sel.onchange=render;
+  }
+  function pie(rep, month){
+    var data=(payload.data[rep]&&payload.data[rep][month])||{};
+    var total=BRANDS.reduce(function(s,b){return s+num(data[b.k]);},0);
+    var R=15.9155, C=2*Math.PI*R, off=0, segs='';
+    if(total>0) BRANDS.forEach(function(b){ var v=num(data[b.k]); if(!v) return;
+      var len=v/total*C;
+      segs+='<circle cx="21" cy="21" r="'+R+'" fill="none" stroke="'+b.c+'" stroke-width="6.5" stroke-dasharray="'+len+' '+(C-len)+'" stroke-dashoffset="'+(-off)+'"></circle>';
+      off+=len;
+    });
+    var svg='<svg viewBox="0 0 42 42" style="transform:rotate(-90deg);width:148px;height:148px">'
+      +'<circle cx="21" cy="21" r="'+R+'" fill="none" stroke="var(--bg2)" stroke-width="6.5"></circle>'+segs+'</svg>';
+    var legend=BRANDS.map(function(b){ var v=num(data[b.k]); var pct=total?Math.round(v/total*100):0;
+      return '<div class="bl-row"><span class="bl-dot" style="background:'+b.c+'"></span><span class="bl-name">'+b.k+'</span><span class="bl-val">'+v+' · '+pct+'%</span></div>'; }).join('');
+    var body = total>0
+      ? '<div class="brand-body"><div class="brand-pie">'+svg+'<div class="pie-center">'+total+'</div></div><div class="brand-legend">'+legend+'</div></div>'
+      : '<div class="brand-empty">אין נתונים לחודש זה</div>';
+    return '<div class="brand-card"><div class="brand-head"><span>'+rep+'</span><span class="brand-tot">סה״כ '+total+'</span></div>'+body+'</div>';
+  }
+  function render(){
+    if(!payload) return;
+    var month=g('brands-month').value, reps=Object.keys(payload.data);
+    g('brands-grid').innerHTML=reps.map(function(r){return pie(r,month);}).join('');
+  }
+  function load(){
+    jsonp(APPS_SCRIPT_URL,{action:'brandSplit'}).then(function(resp){
+      var d=resp&&(resp.data||resp);
+      if(!d||!d.months) throw new Error('מבנה תגובה לא צפוי');
+      payload=d; loaded=true; g('brands-error').className='notice'; buildMonths(); render();
+    }).catch(function(err){ var e=g('brands-error'); e.innerHTML='<div><b>לא ניתן לטעון ספליט מותגים: '+err.message+'</b></div>'; e.className='notice show err'; });
+  }
+  return { show:function(){ if(!loaded) load(); } };
 })();
 
 /* ====== initial paint: ALWAYS from Apps Script (no demo, no previous file) ====== */
