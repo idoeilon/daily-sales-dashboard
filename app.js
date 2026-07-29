@@ -561,7 +561,7 @@ var StockOrders=(function(){
 
 /* ====== BRAND SPLIT screen (data from Apps Script action=brandSplit) ====== */
 var BrandSplit=(function(){
-  var payload=null, loaded=false, cssDone=false;
+  var payload=null, loaded=false, cssDone=false, selMonth={};
   var BRANDS=[{k:'HYUNDAI',c:'#5b8def'},{k:'MITSUBISHI',c:'#ff8e8e'},{k:'JAECOO',c:'#45e6d2'},{k:'OMODA',c:'#ffc04f'},{k:'ORA',c:'#ab9dff'}];
   function g(id){return document.getElementById(id);}
   function num(v){var n=parseFloat(v);return isNaN(n)?0:n;}
@@ -574,11 +574,21 @@ var BrandSplit=(function(){
     var st=document.createElement('style');
     st.textContent='.brands-sec-title{grid-column:1/-1;font-weight:800;font-size:15px;margin:6px 2px 0}'
       +'.bs-wide{grid-column:1/-1}'
-      +'.bs-chart{display:flex;gap:8px;align-items:flex-end;justify-content:space-between;overflow-x:auto;padding:8px 2px 2px}'
-      +'.bs-col{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:32px;flex:1}'
+      +'.bs-chart{display:flex;gap:8px;align-items:flex-end;justify-content:space-between;overflow-x:auto;padding:8px 2px 2px;-webkit-overflow-scrolling:touch}'
+      +'.bs-col{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:34px;flex:1;cursor:pointer;border-radius:8px;padding:2px}'
+      +'.bs-col.sel{background:var(--surface2)}'
       +'.bs-stack{display:flex;flex-direction:column-reverse;width:26px;border-radius:6px;overflow:hidden}'
       +'.bs-num{font-size:11px;color:var(--muted);font-weight:700;height:14px}'
-      +'.bs-lbl{font-size:11px;color:var(--muted);white-space:nowrap}';
+      +'.bs-lbl{font-size:11px;color:var(--muted);white-space:nowrap}'
+      +'.bs-detail{border-top:1px solid var(--line);margin-top:10px;padding-top:10px;display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px}'
+      +'.bs-detail .bl-row{gap:7px}'
+      +'.bs-hint{color:var(--faint);font-size:11.5px;margin-top:6px}'
+      +'@media (max-width:640px){'
+      +'#brands-month{width:100%;min-width:0;font-size:16px;height:44px}'
+      +'.so-head{flex-direction:column;align-items:stretch}'
+      +'.bs-col{min-width:30px}.bs-stack{width:20px}'
+      +'.brand-pie svg{width:120px!important;height:120px!important}'
+      +'}';
     document.head.appendChild(st);
   }
   function pieSVG(counts,size){
@@ -600,18 +610,27 @@ var BrandSplit=(function(){
       : '<div class="brand-empty">\u05d0\u05d9\u05df \u05e0\u05ea\u05d5\u05e0\u05d9\u05dd</div>';
     return '<div class="brand-card"><div class="brand-head"><span>'+title+'</span><span class="brand-tot">'+(sub||'')+'</span></div>'+body+'</div>';
   }
-  function stackChart(rep){
+  function stackChart(rep, idx){
     var ms=payload.months||[]; if(!ms.length) return '';
     var max=1; ms.forEach(function(m){ var t=tot(payload.data[rep]&&payload.data[rep][m]); if(t>max)max=t; });
     var H=120;
-    var cols=ms.map(function(m){
+    var cols=ms.map(function(m,mi){
       var c=(payload.data[rep]&&payload.data[rep][m])||{}; var t=tot(c);
       var segs=BRANDS.map(function(b){ var v=num(c[b.k]); if(!v)return '';
         var h=Math.max(3, Math.round(v/max*H));
         return '<div title="'+b.k+': '+v+'" style="height:'+h+'px;background:'+b.c+'"></div>'; }).join('');
-      return '<div class="bs-col"><div class="bs-num">'+(t||'')+'</div><div class="bs-stack" style="height:'+H+'px">'+segs+'</div><div class="bs-lbl">'+m.slice(0,3)+'</div></div>';
+      var selCls = (selMonth[rep]===m)?' sel':'';
+      return '<div class="bs-col'+selCls+'" data-rep="'+idx+'" data-month="'+m+'"><div class="bs-num">'+(t||'')+'</div><div class="bs-stack" style="height:'+H+'px">'+segs+'</div><div class="bs-lbl">'+m.slice(0,3)+'</div></div>';
     }).join('');
-    return '<div class="brand-card bs-wide"><div class="brand-head"><span>'+rep+' \u2014 \u05e4\u05d9\u05dc\u05d5\u05d7 \u05d7\u05d5\u05d3\u05e9\u05d9</span></div><div class="bs-chart">'+cols+'</div></div>';
+    var detail='';
+    var sm=selMonth[rep];
+    if(sm){ var dc=(payload.data[rep]&&payload.data[rep][sm])||{};
+      detail='<div class="bs-detail"><b style="width:100%">'+sm+' \u2014 \u05e1\u05d4\u05f4\u05db '+tot(dc)+'</b>'+legend(dc)+'</div>';
+    }
+    return '<div class="brand-card bs-wide"><div class="brand-head"><span>'+rep+' \u2014 \u05e4\u05d9\u05dc\u05d5\u05d7 \u05d7\u05d5\u05d3\u05e9\u05d9</span></div>'
+      +'<div class="bs-chart">'+cols+'</div>'
+      +'<div class="bs-hint">\u05dc\u05d7\u05e5 \u05e2\u05dc \u05e2\u05de\u05d5\u05d3\u05d4 \u05dc\u05e4\u05d9\u05e8\u05d5\u05d8 \u05d4\u05de\u05d5\u05ea\u05d2\u05d9\u05dd</div>'
+      +detail+'</div>';
   }
   function monthsWithData(){
     return (payload.months||[]).filter(function(m){
@@ -623,7 +642,20 @@ var BrandSplit=(function(){
     var sel=g('brands-month'); var all=payload.months||[]; var md=monthsWithData();
     sel.innerHTML=all.map(function(m){return '<option>'+m+'</option>';}).join('');
     sel.value = md.length ? md[md.length-1] : (all[all.length-1]||'');
-    sel.onchange=render;
+    sel.addEventListener('change',render);
+    sel.addEventListener('input',render);
+  }
+  function wireChartClicks(){
+    var reps=Object.keys(payload.data);
+    var grid=g('brands-grid');
+    grid.querySelectorAll('.bs-col').forEach(function(col){
+      col.addEventListener('click',function(){
+        var rep=reps[parseInt(col.getAttribute('data-rep'),10)];
+        var m=col.getAttribute('data-month');
+        selMonth[rep] = (selMonth[rep]===m) ? null : m;
+        render();
+      });
+    });
   }
   function render(){
     if(!payload) return;
@@ -631,10 +663,11 @@ var BrandSplit=(function(){
     var month=g('brands-month').value;
     var html='<div class="brands-sec-title">\u05e1\u05d9\u05db\u05d5\u05dd \u05e9\u05e0\u05ea\u05d9</div>';
     html+=reps.map(function(r){ var yc=yearCounts(r); return pieCard(r, yc, '\u05e1\u05d4\u05f4\u05db \u05e9\u05e0\u05ea\u05d9 '+tot(yc)); }).join('');
-    html+=reps.map(function(r){ return stackChart(r); }).join('');
+    html+=reps.map(function(r,i){ return stackChart(r,i); }).join('');
     html+='<div class="brands-sec-title">\u05e4\u05d9\u05e8\u05d5\u05d8 \u05d7\u05d5\u05d3\u05e9\u05d9 \u2014 '+month+'</div>';
     html+=reps.map(function(r){ var c=(payload.data[r]&&payload.data[r][month])||{}; return pieCard(r, c, month); }).join('');
     g('brands-grid').innerHTML=html;
+    wireChartClicks();
   }
   function load(){
     injectCss();
