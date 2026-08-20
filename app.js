@@ -106,11 +106,12 @@ function render(d){
   /* reps bars (scale to max target) */
   const maxScale = Math.max(...d.reps.map(r=>Math.max(r.target, r.invoices+r.inProcess+r.open)), 1);
   el("reps").innerHTML = d.reps.map(r=>{
-    const pipe = r.invoices + r.inProcess + r.open;
+    const backlog = r.inProcess + r.open;               // \u05e6\u05d1\u05e8 \u05d0\u05de\u05d9\u05ea\u05d9: \u05d1\u05ea\u05d4\u05dc\u05d9\u05da + \u05ea\u05d9\u05e7 \u05e4\u05ea\u05d5\u05d7 \u05d1\u05dc\u05d1\u05d3
+    const pipe = r.invoices + backlog;                  // \u05e7\u05e6\u05d4 \u05d4\u05e4\u05e1 \u05d4\u05de\u05e4\u05d5\u05e1\u05e4\u05e1 (\u05d2\u05d9\u05d0\u05d5\u05de\u05d8\u05e8\u05d9\u05d4 \u05d1\u05dc\u05d1\u05d3)
     const aPct = r.target>0 ? r.invoices/r.target : 0;
     return `<div class="repbar">
       <div class="row"><span class="name">${r.name}</span>
-        <span class="vals"><b>${nf.format(r.invoices)}</b> / ${nf.format(r.target)} \u00b7 ${pf(aPct)} \u00b7 \u05e6\u05d1\u05e8 <b>${nf.format(pipe)}</b></span></div>
+        <span class="vals"><b>${nf.format(r.invoices)}</b> / ${nf.format(r.target)} \u00b7 ${pf(aPct)} \u00b7 \u05e6\u05d1\u05e8 <b>${nf.format(backlog)}</b></span></div>
       <div class="bartrack">
         <div class="barpipe" data-w="${pipe/maxScale*100}"></div>
         <div class="barfill" data-w="${r.invoices/maxScale*100}"></div>
