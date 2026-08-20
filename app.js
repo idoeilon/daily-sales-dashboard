@@ -380,6 +380,7 @@ function showScreen(which){
   document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.screen===which));
   if(which==="stock") StockOrders.show();
   if(which==="brands") BrandSplit.show();
+  if(which==="terms") Terms.show();
 }
 document.querySelectorAll(".tab").forEach(t=>{ t.onclick=()=>showScreen(t.dataset.screen); });
 
@@ -676,6 +677,82 @@ var BrandSplit=(function(){
       if(!d||!d.months) throw new Error('\u05de\u05d1\u05e0\u05d4 \u05ea\u05d2\u05d5\u05d1\u05d4 \u05dc\u05d0 \u05e6\u05e4\u05d5\u05d9');
       payload=d; loaded=true; g('brands-error').className='notice'; buildMonths(); render();
     }).catch(function(err){ var e=g('brands-error'); e.innerHTML='<div><b>\u05dc\u05d0 \u05e0\u05d9\u05ea\u05df \u05dc\u05d8\u05e2\u05d5\u05df \u05e1\u05e4\u05dc\u05d9\u05d8 \u05de\u05d5\u05ea\u05d2\u05d9\u05dd: '+err.message+'</b></div>'; e.className='notice show err'; });
+  }
+  return { show:function(){ if(!loaded) load(); } };
+})();
+
+
+/* ====== COMMERCIAL TERMS + discount calculator (action=commercial) ====== */
+var Terms=(function(){
+  var rows=[], loaded=false, cssDone=false;
+  function g(id){return document.getElementById(id);}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+  function money(v){ return '\u20aa' + (Math.round(v*100)/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  var COLS=[{k:'model',t:'\u05d3\u05d2\u05dd \u05e8\u05db\u05d1'},{k:'trim',t:'\u05e7\u05d9\u05d1\u05d5\u05e5 \u05ea\u05d5\u05e1\u05e4\u05d5\u05ea'},{k:'list',t:'\u05de\u05d7\u05d9\u05e8\u05d5\u05df'},{k:'pct',t:'\u05d4\u05e0\u05d7\u05d4 %'},{k:'final',t:'\u05de\u05d7\u05d9\u05e8 \u05dc\u05d0\u05d7\u05e8 \u05d4\u05e0\u05d7\u05d4'}];
+  function injectCss(){ if(cssDone)return; cssDone=true; var st=document.createElement('style');
+    st.textContent='.terms-calc{background:var(--surface2);border:1px dashed var(--line2);border-radius:10px;margin:2px 0 4px;padding:12px 14px}'
+      +'.terms-calc .tc-head{font-weight:800;margin-bottom:8px}'
+      +'.terms-calc .tc-row{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center}'
+      +'.terms-calc label{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}'
+      +'.terms-calc input{height:36px;width:120px;padding:0 10px;border-radius:8px;border:1px solid var(--line2);background:var(--bg2);color:var(--text);font:inherit;font-size:14px}'
+      +'.terms-calc .out{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}'
+      +'.terms-calc .out b{font-size:18px;color:var(--teal)}'
+      +'.terms-calc .disc{color:var(--text);font-weight:700}'
+      +'.trow{cursor:pointer}.trow.open{background:var(--surface2)}';
+    document.head.appendChild(st);
+  }
+  function render(){
+    var q=(g('terms-q').value||'').trim().toLowerCase();
+    var view=rows.filter(function(r){ return !q || (r.model+' '+r.trim).toLowerCase().indexOf(q)>=0; });
+    g('terms-thead').innerHTML=COLS.map(function(c){return '<th>'+c.t+'</th>';}).join('');
+    if(!view.length){ g('terms-tbody').innerHTML='<tr><td class="so-empty" colspan="'+COLS.length+'">\u05d0\u05d9\u05df \u05e8\u05db\u05d1\u05d9\u05dd \u05ea\u05d5\u05d0\u05de\u05d9\u05dd</td></tr>'; g('terms-count').textContent=''; return; }
+    g('terms-count').textContent='\u05de\u05e6\u05d9\u05d2 '+view.length+' \u05e8\u05db\u05d1\u05d9\u05dd';
+    g('terms-tbody').innerHTML=view.map(function(r,i){
+      var cells=COLS.map(function(c){
+        var v=r[c.k];
+        if(c.k==='list'||c.k==='final') v=money(v);
+        else if(c.k==='pct') v=(r.pct?(r.pct+'%'):'\u2014');
+        return '<td>'+esc(v)+'</td>';
+      }).join('');
+      return '<tr class="trow" data-i="'+i+'">'+cells+'</tr>';
+    }).join('');
+    // wire clicks
+    Array.prototype.forEach.call(g('terms-tbody').querySelectorAll('.trow'),function(tr){
+      tr.addEventListener('click',function(){ toggleCalc(tr, view[parseInt(tr.getAttribute('data-i'),10)]); });
+    });
+  }
+  function toggleCalc(tr, car){
+    var next=tr.nextElementSibling;
+    if(next && next.classList.contains('calc-row')){ next.parentNode.removeChild(next); tr.classList.remove('open'); return; }
+    // close others
+    Array.prototype.forEach.call(g('terms-tbody').querySelectorAll('.calc-row'),function(x){x.parentNode.removeChild(x);});
+    Array.prototype.forEach.call(g('terms-tbody').querySelectorAll('.trow.open'),function(x){x.classList.remove('open');});
+    tr.classList.add('open');
+    var td=document.createElement('td'); td.colSpan=COLS.length;
+    td.innerHTML='<div class="terms-calc"><div class="tc-head">'+esc(car.model)+(car.trim?(' \u00b7 '+esc(car.trim)):'')+'</div>'
+      +'<div class="tc-row">'
+      +'<label>\u05de\u05d7\u05d9\u05e8\u05d5\u05df<input value="'+money(car.list)+'" disabled></label>'
+      +'<label>\u05d4\u05e0\u05d7\u05d4 %<input type="number" min="0" max="100" step="0.1" class="tc-pct" value="'+(car.pct||0)+'"></label>'
+      +'<div class="out"><span class="disc"></span><b class="price"></b></div>'
+      +'</div></div>';
+    var row=document.createElement('tr'); row.className='calc-row'; row.appendChild(td);
+    tr.parentNode.insertBefore(row, tr.nextSibling);
+    var inp=td.querySelector('.tc-pct'), price=td.querySelector('.price'), disc=td.querySelector('.disc');
+    function calc(){ var p=parseFloat(inp.value)||0; if(p<0)p=0; if(p>100)p=100;
+      var d=car.list*p/100, f=car.list-d;
+      disc.textContent='\u05d4\u05e0\u05d7\u05d4: '+money(d)+' ('+p+'%)';
+      price.textContent='\u05de\u05d7\u05d9\u05e8 \u05e1\u05d5\u05e4\u05d9: '+money(f);
+    }
+    inp.addEventListener('input',calc); calc(); inp.focus(); inp.select();
+  }
+  function load(){
+    injectCss();
+    jsonp(APPS_SCRIPT_URL,{action:'commercial'}).then(function(resp){
+      var d=resp&&(resp.data||resp);
+      if(!Array.isArray(d)) throw new Error('\u05de\u05d1\u05e0\u05d4 \u05ea\u05d2\u05d5\u05d1\u05d4 \u05dc\u05d0 \u05e6\u05e4\u05d5\u05d9');
+      rows=d; loaded=true; g('terms-error').className='notice';
+      g('terms-q').oninput=render; render();
+    }).catch(function(err){ var e=g('terms-error'); e.innerHTML='<div><b>\u05dc\u05d0 \u05e0\u05d9\u05ea\u05df \u05dc\u05d8\u05e2\u05d5\u05df \u05ea\u05e0\u05d0\u05d9\u05dd \u05de\u05e1\u05d7\u05e8\u05d9\u05d9\u05dd: '+err.message+'</b></div>'; e.className='notice show err'; });
   }
   return { show:function(){ if(!loaded) load(); } };
 })();
