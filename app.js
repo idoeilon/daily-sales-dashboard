@@ -1,12 +1,8 @@
-
-/* ===== embedded snapshot (current data from the workbook) ===== */
-/* \u05e0\u05ea\u05d5\u05e0\u05d9 \u05d4\u05d3\u05de\u05d5 (SNAPSHOT) \u05d4\u05d5\u05e1\u05e8\u05d5 \u2014 \u05d4\u05d3\u05d0\u05e9\u05d1\u05d5\u05e8\u05d3 \u05e0\u05d8\u05e2\u05df \u05d0\u05da \u05d5\u05e8\u05e7 \u05de-Google Sheets, \u05dc\u05dc\u05d0 \u05e0\u05e4\u05d9\u05dc\u05d4 \u05d7\u05d6\u05e8\u05d4 \u05dc\u05d3\u05de\u05d5. */
-
 const nf = new Intl.NumberFormat("he-IL");
 const pf = v => Math.round(v*100) + "%";
 const el = id => document.getElementById(id);
 const reduce = matchMedia("(prefers-reduced-motion:reduce)").matches;
-
+ 
 const STATUS = {
   invoices:{label:"\u05d7\u05e9\u05d1\u05d5\u05e0\u05d9\u05d5\u05ea", color:"#2dd4bf"},
   deliveries:{label:"\u05de\u05e1\u05d9\u05e8\u05d5\u05ea", color:"#5b8def"},
@@ -17,7 +13,7 @@ const STATUS = {
 let CURRENT = null;
 const BUILD = "5 \u00b7 11.6.2026 \u00b7 \u05d6\u05d9\u05d4\u05d5\u05d9-\u05dc\u05e4\u05d9-\u05db\u05d5\u05ea\u05e8\u05d5\u05ea";
 const esc = s => String(s).replace(/[&<>"]/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[ch]));
-
+ 
 function openPopup(key){
   const meta = STATUS[key]; if(!meta || !CURRENT) return;
   const groups = CURRENT.reps.map(r=>({
@@ -37,8 +33,8 @@ function openPopup(key){
   const m = el("modal"); m.classList.add("show"); m.setAttribute("aria-hidden","false");
 }
 function closePopup(){ const m=el("modal"); m.classList.remove("show"); m.setAttribute("aria-hidden","true"); }
-
-
+ 
+ 
 function compute(d){
   const t = { invoices:0, inProcess:0, open:0, deliveries:0, target:0 };
   d.reps.forEach(r=>{ t.invoices+=r.invoices; t.inProcess+=r.inProcess; t.open+=r.open; t.deliveries+=r.deliveries; t.target+=r.target; });
@@ -49,7 +45,7 @@ function compute(d){
   const potential = t.target>0 ? (t.invoices+t.inProcess+t.open)/t.target : 0;
   return { t, elapsed, ach, remaining, perDay, potential };
 }
-
+ 
 let countTimers=[];
 function countUp(node, to, fmt){
   countTimers.forEach(clearInterval); 
@@ -59,12 +55,12 @@ function countUp(node, to, fmt){
     node.textContent=fmt(to*e); if(p<1) requestAnimationFrame(step); }
   requestAnimationFrame(step);
 }
-
+ 
 function render(d){
   CURRENT = d;
   const c = compute(d);
   el("subtitle").textContent = "\u05e0\u05d9\u05d4\u05d5\u05dc \u05de\u05db\u05d9\u05e8\u05d5\u05ea \u05d7\u05d5\u05d3\u05e9\u05d9 \u2014 " + d.month;
-
+ 
   /* hero */
   const behind = c.ach < c.elapsed;
   const verdict = el("verdict");
@@ -85,7 +81,7 @@ function render(d){
     fill.style.width = Math.min(c.ach,1)*100 + "%";
     el("timeMark").style.right = Math.min(c.elapsed,1)*100 + "%";
   }, reduce?0:60); });
-
+ 
   /* kpis */
   const kpis = [
     {l:"\u05d7\u05e9\u05d1\u05d5\u05e0\u05d9\u05d5\u05ea (\u05d1\u05d9\u05e6\u05d5\u05e2)", v:c.t.invoices, s:"\u05dc\u05d7\u05e5 \u05dc\u05e4\u05d9\u05e8\u05d5\u05d8 \u05dc\u05e7\u05d5\u05d7\u05d5\u05ea", color:"var(--teal)", st:"invoices"},
@@ -101,7 +97,7 @@ function render(d){
     card.onclick=open;
     card.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(); } };
   });
-
+ 
   /* reps bars (scale to max target) */
   const maxScale = Math.max(...d.reps.map(r=>Math.max(r.target, r.invoices+r.inProcess+r.open)), 1);
   el("reps").innerHTML = d.reps.map(r=>{
@@ -119,7 +115,7 @@ function render(d){
   requestAnimationFrame(()=>setTimeout(()=>{
     el("reps").querySelectorAll(".barpipe,.barfill").forEach(b=>b.style.width=b.dataset.w+"%");
   }, reduce?0:80));
-
+ 
   /* donut: invoices / inProcess / open */
   const parts = [
     {n:"\u05d7\u05e9\u05d1\u05d5\u05e0\u05d9\u05d5\u05ea", v:c.t.invoices, col:"var(--teal)"},
@@ -139,7 +135,7 @@ function render(d){
   },120));
   el("dlegend").innerHTML = parts.map(p=>`<div class="it"><i style="background:${p.col}"></i>
      <span class="n">${p.n}</span><span class="x num">${nf.format(p.v)}</span></div>`).join("");
-
+ 
   /* quality */
   el("quality").innerHTML = d.quality.map(q=>{
     const dots = Array.from({length:q.target},(_,i)=>`<span class="d ${i<q.done?'on':''}"></span>`).join("");
@@ -158,7 +154,7 @@ function render(d){
     card.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); open(); } };
   });
   el("focus").innerHTML = d.focusModels.map(m=>`<span class="chip">${m}</span>`).join("");
-
+ 
   /* incentive \u2014 \u05d3\u05d9\u05e0\u05de\u05d9: \u05de\u05d5\u05e6\u05d2 \u05e8\u05e7 \u05d0\u05dd \u05d9\u05e9 \u05ea\u05d5\u05db\u05df \u05d4\u05d7\u05d5\u05d3\u05e9, \u05d0\u05d7\u05e8\u05ea \u05e0\u05e2\u05dc\u05dd */
   const incData = d.incentive || [];
   const incSection = el("incentiveSection");
@@ -176,16 +172,16 @@ function render(d){
     }).join("");
     el("incnote").textContent = d.incentiveNote || "";
   }
-
+ 
   /* footer */
   el("foot").innerHTML = `\u05de\u05e7\u05d5\u05e8 \u05d4\u05e0\u05ea\u05d5\u05e0\u05d9\u05dd: \u05d2\u05d9\u05dc\u05d9\u05d5\u05df <code>\u05d7\u05e9\u05d1\u05d5\u05e0\u05d9\u05ea-\u05e4\u05ea\u05d5\u05d7-\u05d1\u05ea\u05d4\u05dc\u05d9\u05da</code> \u00b7 \u05d7\u05d9\u05e9\u05d5\u05d1 \u05dc\u05e4\u05d9 \u05e9\u05dd \u05e0\u05e6\u05d9\u05d2 \u05d5\u05db\u05d5\u05ea\u05e8\u05d5\u05ea (\u05e2\u05de\u05d9\u05d3 \u05dc\u05d4\u05d6\u05d6\u05ea \u05e9\u05d5\u05e8\u05d5\u05ea/\u05e2\u05de\u05d5\u05d3\u05d5\u05ea)<br>${window.__lastUpdate||("\u05e0\u05ea\u05d5\u05e0\u05d9\u05dd \u05de\u05d5\u05d8\u05de\u05e2\u05d9\u05dd \u2014 \u05e0\u05db\u05d5\u05df \u05dc"+d.month)}<br><span style="color:#3f4a60">\u05de\u05d4\u05d3\u05d5\u05e8\u05d4 ${BUILD}</span>`;
 }
-
+ 
 /* ===== refresh from an uploaded / co-hosted .xlsx ===== */
 const LABEL="\u05dc\u05e7\u05d5\u05d7 / \u05de\u05e9\u05e4\u05d7\u05ea \u05d3\u05d2\u05dd", TOTAL='\u05e1\u05d4"\u05db';
 const txt = v => (v==null?"":String(v)).trim();
 const n = v => { const x=Number(v); return isFinite(x)?x:0; };
-
+ 
 function aggregateSales(rows){
   // Header-driven & range-origin-robust: locate columns by their header TEXT within each
   // header row (the row that contains "\u05dc\u05e7\u05d5\u05d7 / \u05de\u05e9\u05e4\u05d7\u05ea \u05d3\u05d2\u05dd"), not by fixed column numbers.
@@ -228,7 +224,7 @@ function aggregateSales(rows){
   });
   return reps;
 }
-
+ 
 function readTargetsAndQuality(rows, reps){
   const norm=s=>s.replace(/\s+/g,"");
   const hdr=[];
@@ -249,17 +245,17 @@ function readTargetsAndQuality(rows, reps){
   reps.forEach(r=>{ const s=find(sales,r.name); if(s) r.target=s.target; });
   return reps.map(r=>{ const q=find(qual,r.name); return {name:r.name, target:q?q.target:4, done:q?q.actual:0}; });
 }
-
+ 
 /* ====================== DATA LAYER ======================
    \u05de\u05e7\u05d5\u05e8 \u05d4\u05e0\u05ea\u05d5\u05e0\u05d9\u05dd \u05d4\u05e7\u05d1\u05d5\u05e2: Google Sheets \u05d3\u05e8\u05da Apps Script (JSONP).
    \u05d8\u05e2\u05d9\u05e0\u05ea Excel \u05de\u05e7\u05d5\u05de\u05d9\u05ea = \u05d0\u05d5\u05e4\u05e6\u05d9\u05d5\u05e0\u05dc\u05d9\u05ea \u05dc\u05d1\u05d3\u05d9\u05e7\u05d4 \u05d1\u05dc\u05d1\u05d3 (\u05d6\u05de\u05e0\u05d9 \u05e2\u05d3 \u05e8\u05e2\u05e0\u05d5\u05df \u05d4\u05d3\u05e3). */
-
+ 
 /* >>> \u05d4\u05d2\u05d3\u05e8 \u05db\u05d0\u05df \u05d0\u05ea \u05db\u05ea\u05d5\u05d1\u05ea \u05d4-Web App \u05e9\u05dc \u05d4-Apps Script \u05e9\u05dc\u05da <<< */
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwQMzHfAVBU1xA4v6Nodp034WGwwi8BShgB4lzdyOxnodAgqHqmUP2x7h-zXU1w9APleQ/exec";
-
+ 
 const HEB_MONTHS=["\u05d9\u05e0\u05d5\u05d0\u05e8","\u05e4\u05d1\u05e8\u05d5\u05d0\u05e8","\u05de\u05e8\u05e5","\u05d0\u05e4\u05e8\u05d9\u05dc","\u05de\u05d0\u05d9","\u05d9\u05d5\u05e0\u05d9","\u05d9\u05d5\u05dc\u05d9","\u05d0\u05d5\u05d2\u05d5\u05e1\u05d8","\u05e1\u05e4\u05d8\u05de\u05d1\u05e8","\u05d0\u05d5\u05e7\u05d8\u05d5\u05d1\u05e8","\u05e0\u05d5\u05d1\u05de\u05d1\u05e8","\u05d3\u05e6\u05de\u05d1\u05e8"];
 function monthLabel(){ const d=new Date(); return HEB_MONTHS[d.getMonth()]+" "+d.getFullYear(); }
-
+ 
 function jsonp(url, params){
   /* \u05de\u05d5\u05d2\u05e9 \u05de\u05ea\u05d5\u05da Apps Script \u2014 \u05ea\u05e7\u05e9\u05d5\u05e8\u05ea \u05d1\u05e2\u05e8\u05d5\u05e5 \u05d4\u05de\u05d0\u05d5\u05d1\u05d8\u05d7 \u05e9\u05dc \u05d2\u05d5\u05d2\u05dc (google.script.run) */
   return new Promise((resolve,reject)=>{
@@ -272,7 +268,7 @@ function jsonp(url, params){
       .api((params && params.action) || "sales");
   });
 }
-
+ 
 /* \u05d1\u05d5\u05e0\u05d4 \u05d0\u05ea \u05d0\u05d5\u05d1\u05d9\u05d9\u05e7\u05d8 \u05d4\u05d3\u05d0\u05e9\u05d1\u05d5\u05e8\u05d3 \u05de\u05ea\u05d5\u05da \u05e1\u05e4\u05e7-\u05e9\u05d5\u05e8\u05d5\u05ea. \u05d0\u05d5\u05ea\u05d5 \u05e4\u05e8\u05e1\u05e8 \u05d1\u05d3\u05d9\u05d5\u05e7 \u05dc\u05d0\u05e7\u05e1\u05dc \u05de\u05e7\u05d5\u05de\u05d9 \u05d5\u05d2\u05dd \u05dc-Apps Script. */
 function buildData(getRows){
   const rows = getRows("\u05d7\u05e9\u05d1\u05d5\u05e0\u05d9\u05ea-\u05e4\u05ea\u05d5\u05d7-\u05d1\u05ea\u05d4\u05dc\u05d9\u05da");
@@ -305,14 +301,14 @@ function buildData(getRows){
   return { month:monthLabel(), workDaysInMonth:wdMonth, workDaysLeft:wdLeft, reps, quality, focusModels:focus, incentive,
            incentiveNote:"\u05e2\u05de\u05d9\u05d3\u05d4 \u05d1\u05d9\u05e2\u05d3 \u201c\u05e9\u05de\u05d9\u05d9\u05dd\u201d \u05de\u05d6\u05db\u05d4 \u05d1-3,000 \u20aa \u05e9\u05d5\u05d1\u05e8\u05d9 \u05d4\u05d9\u05d9\u05d8\u05e7\u05d6\u05d5\u05df" };
 }
-
+ 
 /* \u05e1\u05e4\u05e7-\u05e9\u05d5\u05e8\u05d5\u05ea \u05de\u05ea\u05d5\u05da \u05e7\u05d5\u05d1\u05e5 \u05d0\u05e7\u05e1\u05dc \u05de\u05e7\u05d5\u05de\u05d9 (SheetJS) */
 async function rowsFromWorkbook(arrayBuffer){
   await ensureXLSX();
   const wb = XLSX.read(arrayBuffer,{type:"array"});
   return (name)=>{ const sh=wb.Sheets[name]; return sh ? XLSX.utils.sheet_to_json(sh,{header:1,raw:true,defval:null}) : null; };
 }
-
+ 
 let xlsxLoading=null;
 function ensureXLSX(){
   if(window.XLSX) return Promise.resolve();
@@ -322,7 +318,7 @@ function ensureXLSX(){
     s.onload=res; s.onerror=()=>rej(new Error("\u05d8\u05e2\u05d9\u05e0\u05ea \u05de\u05e0\u05d5\u05e2 \u05d4\u05d0\u05e7\u05e1\u05dc \u05e0\u05db\u05e9\u05dc\u05d4 (\u05e0\u05d3\u05e8\u05e9 \u05d0\u05d9\u05e0\u05d8\u05e8\u05e0\u05d8)")); document.head.appendChild(s); });
   return xlsxLoading;
 }
-
+ 
 function showNotice(html, kind){ const nEl=el("notice"); nEl.innerHTML=html; nEl.className="notice show"+(kind?(" "+kind):""); }
 function hideNotice(){ el("notice").className="notice"; }
 function setSource(kind){
@@ -332,7 +328,7 @@ function setSource(kind){
   else if(kind==="loading"){ p.className="pill embedded"; l.textContent="\u05d8\u05d5\u05e2\u05df \u05de-Google Sheets\u2026"; }
   else { p.className="pill embedded"; l.textContent="\u05e9\u05d2\u05d9\u05d0\u05ea \u05d7\u05d9\u05d1\u05d5\u05e8"; }
 }
-
+ 
 /* ====== PRIMARY source: Apps Script (Google Sheets). \u05e0\u05d8\u05e2\u05df \u05d0\u05d5\u05d8\u05d5\u05de\u05d8\u05d9\u05ea \u05d1\u05db\u05dc \u05e8\u05e2\u05e0\u05d5\u05df. ====== */
 async function loadData(){
   hideNotice(); setSource("loading");
@@ -348,7 +344,7 @@ async function loadData(){
     showNotice('<div><b>\u05dc\u05d0 \u05e0\u05d9\u05ea\u05df \u05dc\u05d8\u05e2\u05d5\u05df \u05e0\u05ea\u05d5\u05e0\u05d9\u05dd \u05de-Google Sheets.</b> '+err.message+'. \u05d1\u05d3\u05d5\u05e7 \u05d0\u05ea \u05db\u05ea\u05d5\u05d1\u05ea \u05d4-Apps Script \u05d5\u05d0\u05ea \u05d4\u05d4\u05e8\u05e9\u05d0\u05d5\u05ea.</div>',"err");
   }
 }
-
+ 
 /* ====== OPTIONAL: local Excel \u2014 \u05dc\u05d1\u05d3\u05d9\u05e7\u05d4 \u05d1\u05dc\u05d1\u05d3, \u05d6\u05de\u05e0\u05d9 \u05e2\u05d3 \u05e8\u05e2\u05e0\u05d5\u05df ====== */
 async function loadFromBuffer(buf){
   try{
@@ -361,7 +357,7 @@ async function loadFromBuffer(buf){
     showNotice('<div><b>\u05dc\u05d0 \u05d4\u05e6\u05dc\u05d7\u05ea\u05d9 \u05dc\u05e7\u05e8\u05d5\u05d0 \u05d0\u05ea \u05d4\u05e7\u05d5\u05d1\u05e5.</b> '+err.message+'.</div>',"err");
   }
 }
-
+ 
 /* wire controls */
 el("loadBtn").onclick=()=>el("fileInput").click();
 el("fileInput").onchange=e=>{ const f=e.target.files[0]; if(!f) return; const rd=new FileReader(); rd.onload=()=>loadFromBuffer(rd.result); rd.readAsArrayBuffer(f); };
@@ -371,7 +367,7 @@ el("modalBackdrop").onclick=closePopup;
 addEventListener("keydown",e=>{ if(e.key==="Escape") closePopup(); });
 addEventListener("dragover",e=>{e.preventDefault();});
 addEventListener("drop",e=>{e.preventDefault(); const f=e.dataTransfer.files[0]; if(f){ const rd=new FileReader(); rd.onload=()=>loadFromBuffer(rd.result); rd.readAsArrayBuffer(f);} });
-
+ 
 /* ====== TABS ====== */
 function showScreen(which){
   el("screen-sales").hidden = (which!=="sales");
@@ -382,8 +378,31 @@ function showScreen(which){
   if(which==="brands") BrandSplit.show();
   if(which==="terms") Terms.show();
 }
+/* ensure the "terms" tab + screen exist even if the HTML shell is an older version */
+(function ensureTermsUI(){
+  try{
+    var tabs=document.querySelector(".tabs");
+    if(tabs && !document.querySelector('.tab[data-screen="terms"]')){
+      var b=document.createElement("button"); b.className="tab"; b.setAttribute("data-screen","terms");
+      b.textContent="\u05ea\u05e0\u05d0\u05d9\u05dd \u05de\u05e1\u05d7\u05e8\u05d9\u05d9\u05dd"; tabs.appendChild(b);
+    }
+    if(!document.getElementById("screen-terms")){
+      var wrap=document.querySelector(".wrap")||document.body;
+      var s=document.createElement("div"); s.id="screen-terms"; s.hidden=true;
+      s.innerHTML='<div class="so-head"><div><h2>\u05ea\u05e0\u05d0\u05d9\u05dd \u05de\u05e1\u05d7\u05e8\u05d9\u05d9\u05dd</h2>'
+        +'<p>\u05de\u05d7\u05d9\u05e8\u05d5\u05df \u05d5\u05d4\u05e0\u05d7\u05d5\u05ea \u05d4\u05d7\u05d5\u05d3\u05e9 \u2014 \u05dc\u05d7\u05e5 \u05e2\u05dc \u05e8\u05db\u05d1 \u05db\u05d3\u05d9 \u05dc\u05d7\u05e9\u05d1 \u05de\u05d7\u05d9\u05e8 \u05e2\u05dd \u05d0\u05d7\u05d5\u05d6 \u05d4\u05e0\u05d7\u05d4 \u05de\u05e9\u05dc\u05da</p></div>'
+        +'<input id="terms-q" class="so-input" type="search" placeholder="\u05d7\u05d9\u05e4\u05d5\u05e9 \u05d3\u05d2\u05dd / \u05d2\u05d9\u05de\u05d5\u05e8"></div>'
+        +'<div id="terms-error" class="notice" style="margin:0 0 14px"></div>'
+        +'<div id="terms-count" class="so-count"></div>'
+        +'<div class="so-tablewrap"><table class="so-table" id="terms-table"><thead><tr id="terms-thead"></tr></thead><tbody id="terms-tbody"></tbody></table></div>';
+      var stock=document.getElementById("screen-stock")||document.getElementById("screen-brands");
+      if(stock && stock.parentNode) stock.parentNode.insertBefore(s, stock.nextSibling); else wrap.appendChild(s);
+    }
+  }catch(e){}
+})();
+ 
 document.querySelectorAll(".tab").forEach(t=>{ t.onclick=()=>showScreen(t.dataset.screen); });
-
+ 
 /* ====== STOCK ORDERS screen (data from Apps Script action=stockOrders) ====== */
 var StockOrders=(function(){
   var raw=[], view=[], loaded=false, CAP=400;
@@ -452,7 +471,7 @@ var StockOrders=(function(){
     msLabel(field);
   }
   function soErr(m){ var e=g("so-error"); if(!m){ e.className="notice"; return; } e.innerHTML='<div><b>'+esc(m)+'</b></div>'; e.className="notice show err"; }
-
+ 
   function apply(){
     var q=tx(g("so-q").value).toLowerCase(), ds=g("so-days").value;
     view=raw.filter(function(o){
@@ -559,7 +578,7 @@ var StockOrders=(function(){
   wire();
   return { show:function(){ if(!loaded) load(); }, reload:load };
 })();
-
+ 
 /* ====== BRAND SPLIT screen (data from Apps Script action=brandSplit) ====== */
 var BrandSplit=(function(){
   var payload=null, loaded=false, cssDone=false, selMonth={};
@@ -680,8 +699,8 @@ var BrandSplit=(function(){
   }
   return { show:function(){ if(!loaded) load(); } };
 })();
-
-
+ 
+ 
 /* ====== COMMERCIAL TERMS + discount calculator (action=commercial) ====== */
 var Terms=(function(){
   var rows=[], loaded=false, cssDone=false;
@@ -756,6 +775,7 @@ var Terms=(function(){
   }
   return { show:function(){ if(!loaded) load(); } };
 })();
-
+ 
 /* ====== initial paint: ALWAYS from Apps Script (no demo, no previous file) ====== */
 loadData();
+ 
