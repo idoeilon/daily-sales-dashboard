@@ -708,6 +708,7 @@ var Terms=(function(){
   function g(id){return document.getElementById(id);}
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
   function money(v){ return '\u20aa' + (Math.round(v*100)/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+  function pctFmt(p){ return (Math.round((parseFloat(p)||0)*100)/100); }
   var COLS=[{k:'model',t:'\u05d3\u05d2\u05dd \u05e8\u05db\u05d1'},{k:'trim',t:'\u05e7\u05d9\u05d1\u05d5\u05e5 \u05ea\u05d5\u05e1\u05e4\u05d5\u05ea'},{k:'list',t:'\u05de\u05d7\u05d9\u05e8\u05d5\u05df'},{k:'pct',t:'\u05d4\u05e0\u05d7\u05d4 %'},{k:'final',t:'\u05de\u05d7\u05d9\u05e8 \u05dc\u05d0\u05d7\u05e8 \u05d4\u05e0\u05d7\u05d4'}];
   function injectCss(){ if(cssDone)return; cssDone=true; var st=document.createElement('style');
     st.textContent='.terms-calc{background:var(--surface2);border:1px dashed var(--line2);border-radius:10px;margin:2px 0 4px;padding:12px 14px}'
@@ -731,7 +732,7 @@ var Terms=(function(){
       var cells=COLS.map(function(c){
         var v=r[c.k];
         if(c.k==='list'||c.k==='final') v=money(v);
-        else if(c.k==='pct') v=(r.pct?(r.pct+'%'):'\u2014');
+        else if(c.k==='pct') v=(r.pct?(pctFmt(r.pct)+'%'):'\u2014');
         return '<td>'+esc(v)+'</td>';
       }).join('');
       return '<tr class="trow" data-i="'+i+'">'+cells+'</tr>';
@@ -749,7 +750,7 @@ var Terms=(function(){
     Array.prototype.forEach.call(g('terms-tbody').querySelectorAll('.trow.open'),function(x){x.classList.remove('open');});
     tr.classList.add('open');
     var td=document.createElement('td'); td.colSpan=COLS.length;
-    var listedPct=(car.pct||0);td.innerHTML='<div class="terms-calc"><div class="tc-head">'+esc(car.model)+(car.trim?(' \u00b7 '+esc(car.trim)):'')+(listedPct?(' <span style="color:var(--muted);font-weight:600;font-size:13px">\u00b7 \u05d4\u05e0\u05d7\u05d4 \u05e0\u05e7\u05d5\u05d1\u05d4: '+listedPct+'%</span>'):'')+'</div>'
+    var listedPct=pctFmt(car.pct||0);td.innerHTML='<div class="terms-calc"><div class="tc-head">'+esc(car.model)+(car.trim?(' \u00b7 '+esc(car.trim)):'')+(listedPct?(' <span style="color:var(--muted);font-weight:600;font-size:13px">\u00b7 \u05d4\u05e0\u05d7\u05d4 \u05e0\u05e7\u05d5\u05d1\u05d4: '+listedPct+'%</span>'):'')+'</div>'
       +'<div class="tc-row">'
       +'<label>\u05de\u05d7\u05d9\u05e8\u05d5\u05df<input value="'+money(car.list)+'" disabled></label>'
       +'<label>\u05d4\u05e0\u05d7\u05d4 %<input type="number" min="0" max="100" step="0.1" class="tc-pct" value="'+(Math.round(listedPct*0.85*100)/100)+'"></label>'
@@ -760,7 +761,7 @@ var Terms=(function(){
     var inp=td.querySelector('.tc-pct'), price=td.querySelector('.price'), disc=td.querySelector('.disc');
     function calc(){ var p=parseFloat(inp.value)||0; if(p<0)p=0; if(p>100)p=100;
       var d=car.list*p/100, f=car.list-d;
-      disc.textContent='\u05d4\u05e0\u05d7\u05d4: '+money(d)+' ('+p+'%)';
+      disc.textContent='\u05d4\u05e0\u05d7\u05d4: '+money(d)+' ('+pctFmt(p)+'%)';
       price.textContent='\u05de\u05d7\u05d9\u05e8 \u05e1\u05d5\u05e4\u05d9: '+money(f);
     }
     inp.addEventListener('input',calc); calc(); inp.focus(); inp.select();
