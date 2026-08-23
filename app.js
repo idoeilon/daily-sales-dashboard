@@ -709,7 +709,7 @@ var Terms=(function(){
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
   function money(v){ return '\u20aa' + (Math.round(v*100)/100).toLocaleString('he-IL',{minimumFractionDigits:2,maximumFractionDigits:2}); }
   function pctFmt(p){ return (Math.round((parseFloat(p)||0)*100)/100); }
-  var COLS=[{k:'model',t:'\u05d3\u05d2\u05dd \u05e8\u05db\u05d1'},{k:'trim',t:'\u05e7\u05d9\u05d1\u05d5\u05e5 \u05ea\u05d5\u05e1\u05e4\u05d5\u05ea'},{k:'list',t:'\u05de\u05d7\u05d9\u05e8\u05d5\u05df'},{k:'pct',t:'\u05d4\u05e0\u05d7\u05d4 %'},{k:'final',t:'\u05de\u05d7\u05d9\u05e8 \u05dc\u05d0\u05d7\u05e8 \u05d4\u05e0\u05d7\u05d4'}];
+  var COLS=[{k:'model',t:'\u05d3\u05d2\u05dd \u05e8\u05db\u05d1'},{k:'trim',t:'\u05e7\u05d9\u05d1\u05d5\u05e5 \u05ea\u05d5\u05e1\u05e4\u05d5\u05ea'},{k:'list',t:'\u05de\u05d7\u05d9\u05e8\u05d5\u05df'},{k:'pct',t:'\u05d4\u05e0\u05d7\u05d4 %'},{k:'final',t:'\u05de\u05d7\u05d9\u05e8 \u05dc\u05d0\u05d7\u05e8 \u05d4\u05e0\u05d7\u05d4'},{k:'fee',t:'\u05d0\u05d2\u05e8\u05ea \u05e8\u05d9\u05e9\u05d5\u05d9'},{k:'total',t:'\u05db\u05d5\u05dc\u05dc \u05d0\u05f4\u05e8'}];
   function injectCss(){ if(cssDone)return; cssDone=true; var st=document.createElement('style');
     st.textContent='.terms-calc{background:var(--surface2);border:1px dashed var(--line2);border-radius:10px;margin:2px 0 4px;padding:12px 14px}'
       +'.terms-calc .tc-head{font-weight:800;margin-bottom:8px}'
@@ -728,10 +728,10 @@ var Terms=(function(){
     g('terms-thead').innerHTML=COLS.map(function(c){return '<th>'+c.t+'</th>';}).join('');
     if(!view.length){ g('terms-tbody').innerHTML='<tr><td class="so-empty" colspan="'+COLS.length+'">\u05d0\u05d9\u05df \u05e8\u05db\u05d1\u05d9\u05dd \u05ea\u05d5\u05d0\u05de\u05d9\u05dd</td></tr>'; g('terms-count').textContent=''; return; }
     g('terms-count').textContent='\u05de\u05e6\u05d9\u05d2 '+view.length+' \u05e8\u05db\u05d1\u05d9\u05dd';
-    g('terms-tbody').innerHTML=view.map(function(r,i){
+    g('terms-tbody').innerHTML=view.map(function(r,i){ r.fee=(+r.fee||0); r.total=(+r.final||0)+r.fee;
       var cells=COLS.map(function(c){
         var v=r[c.k];
-        if(c.k==='list'||c.k==='final') v=money(v);
+        if(c.k==='list'||c.k==='final'||c.k==='fee'||c.k==='total') v=money(v);
         else if(c.k==='pct') v=(r.pct?(pctFmt(r.pct)+'%'):'\u2014');
         return '<td>'+esc(v)+'</td>';
       }).join('');
@@ -754,15 +754,15 @@ var Terms=(function(){
       +'<div class="tc-row">'
       +'<label>\u05de\u05d7\u05d9\u05e8\u05d5\u05df<input value="'+money(car.list)+'" disabled></label>'
       +'<label>\u05d4\u05e0\u05d7\u05d4 %<input type="number" min="0" max="100" step="0.1" class="tc-pct" value="'+(Math.round(listedPct*0.85*100)/100)+'"></label>'
-      +'<div class="out"><span class="disc"></span><b class="price"></b></div>'
+      +'<div class="out"><span class="disc"></span><b class="price"></b><b class="pricefee" style="color:var(--text)"></b></div>'
       +'</div></div>';
     var row=document.createElement('tr'); row.className='calc-row'; row.appendChild(td);
     tr.parentNode.insertBefore(row, tr.nextSibling);
-    var inp=td.querySelector('.tc-pct'), price=td.querySelector('.price'), disc=td.querySelector('.disc');
+    var inp=td.querySelector('.tc-pct'), price=td.querySelector('.price'), disc=td.querySelector('.disc'), pricefee=td.querySelector('.pricefee'), fee=(+car.fee||0);
     function calc(){ var p=parseFloat(inp.value)||0; if(p<0)p=0; if(p>100)p=100;
       var d=car.list*p/100, f=car.list-d;
       disc.textContent='\u05d4\u05e0\u05d7\u05d4: '+money(d)+' ('+pctFmt(p)+'%)';
-      price.textContent='\u05de\u05d7\u05d9\u05e8 \u05e1\u05d5\u05e4\u05d9: '+money(f);
+      price.textContent='\u05de\u05d7\u05d9\u05e8 \u05e1\u05d5\u05e4\u05d9: '+money(f);pricefee.textContent='\u05db\u05d5\u05dc\u05dc \u05d0\u05d2\u05e8\u05ea \u05e8\u05d9\u05e9\u05d5\u05d9 ('+money(fee)+'): '+money(f+fee);
     }
     inp.addEventListener('input',calc); calc(); inp.focus(); inp.select();
   }
