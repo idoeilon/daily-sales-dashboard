@@ -707,6 +707,7 @@ var Terms=(function(){
   var rows=[], loaded=false, cssDone=false;
   function g(id){return document.getElementById(id);}
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];});}
+  function licenseFee(list){ list=+list||0; if(list<=117000) return 1401; if(list<=141000) return 1745; if(list<=167000) return 2076; if(list<=188000) return 2450; if(list<=244000) return 2786; if(list<=347000) return 3899; return 5499; }
   function money(v){ v=Math.round((+v||0)*100)/100; var hasFrac=Math.abs(v%1)>0.0001;
     return '\u20aa' + v.toLocaleString('he-IL',{minimumFractionDigits:hasFrac?2:0,maximumFractionDigits:2}); }
   function pctFmt(p){ return (Math.round((parseFloat(p)||0)*100)/100); }
@@ -729,7 +730,7 @@ var Terms=(function(){
     g('terms-thead').innerHTML=COLS.map(function(c){return '<th>'+c.t+'</th>';}).join('');
     if(!view.length){ g('terms-tbody').innerHTML='<tr><td class="so-empty" colspan="'+COLS.length+'">\u05d0\u05d9\u05df \u05e8\u05db\u05d1\u05d9\u05dd \u05ea\u05d5\u05d0\u05de\u05d9\u05dd</td></tr>'; g('terms-count').textContent=''; return; }
     g('terms-count').textContent='\u05de\u05e6\u05d9\u05d2 '+view.length+' \u05e8\u05db\u05d1\u05d9\u05dd';
-    g('terms-tbody').innerHTML=view.map(function(r,i){ r.fee=(+r.fee||0); r.total=(+r.final||0)+r.fee;
+    g('terms-tbody').innerHTML=view.map(function(r,i){ r.fee=licenseFee(r.list); r.total=(+r.final||0)+r.fee;
       var cells=COLS.map(function(c){
         var v=r[c.k];
         if(c.k==='list'||c.k==='final'||c.k==='fee'||c.k==='total') v=money(v);
@@ -759,7 +760,7 @@ var Terms=(function(){
       +'</div></div>';
     var row=document.createElement('tr'); row.className='calc-row'; row.appendChild(td);
     tr.parentNode.insertBefore(row, tr.nextSibling);
-    var inp=td.querySelector('.tc-pct'), price=td.querySelector('.price'), disc=td.querySelector('.disc'), pricefee=td.querySelector('.pricefee'), fee=(+car.fee||0);
+    var inp=td.querySelector('.tc-pct'), price=td.querySelector('.price'), disc=td.querySelector('.disc'), pricefee=td.querySelector('.pricefee'), fee=licenseFee(car.list);
     function calc(){ var p=parseFloat(inp.value)||0; if(p<0)p=0; if(p>100)p=100;
       var d=car.list*p/100, f=car.list-d;
       disc.textContent='\u05d4\u05e0\u05d7\u05d4: '+money(d)+' ('+pctFmt(p)+'%)';
