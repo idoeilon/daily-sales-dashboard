@@ -379,6 +379,8 @@ function showScreen(which){
   if(which==="brands") BrandSplit.show();
   if(which==="terms") Terms.show();
 }
+(function injectGlobalCss(){ try{ var st=document.createElement("style"); st.textContent=".kpis{display:flex!important;gap:12px;flex-wrap:wrap}.kpis>*{flex:1 1 0;min-width:150px}@media(max-width:640px){.kpis>*{flex:1 1 45%;min-width:0}}"; document.head.appendChild(st);}catch(e){} })();
+
 /* ensure the "terms" tab + screen exist even if the HTML shell is an older version */
 (function ensureTermsUI(){
   try{
